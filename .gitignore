@@ -1,6 +1,8 @@
-node_modules
-.next
-.vercel
+node_modules/
+.next/
+.env
+.env.local
 *.log
-
-.vercel
+.vercel/
+__pycache__/
+*.tsbuildinfo

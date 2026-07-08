@@ -63,7 +63,7 @@ const handler = createMcpHandler(
 
     server.tool(
       "save_application",
-      "Saves a job to the tracked application shortlist. Does NOT submit anything anywhere, this is a tracker only.",
+      "Saves a job to the tracked application shortlist. Does NOT submit anything anywhere, this is a tracker only. Flags likely duplicates (same company + job title as an existing entry) in the response instead of silently creating a second row.",
       {
         company: z.string(),
         jobTitle: z.string(),

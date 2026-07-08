@@ -1,0 +1,17 @@
+{
+  "name": "job-helpr",
+  "metadata": {
+    "description": "Job search pipeline — discover, tailor, track, and apply, with ATS-safe LaTeX and draft-and-confirm outreach."
+  },
+  "owner": {
+    "name": "Aaditya Golash"
+  },
+  "plugins": [
+    {
+      "name": "job-helpr",
+      "source": "./",
+      "description": "Job search pipeline for Claude Code",
+      "category": "productivity"
+    }
+  ]
+}

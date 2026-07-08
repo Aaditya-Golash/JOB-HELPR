@@ -1,4 +1,15 @@
 import { put, get } from "@vercel/blob";
+import { findLikelyDuplicate } from "./dedup";
+
+function assertBlobToken() {
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    throw new Error(
+      "BLOB_READ_WRITE_TOKEN is not set in this environment. Connect a Vercel " +
+        "Blob store to this project (Storage tab in the Vercel dashboard) and " +
+        "redeploy -- see .env.example and README.md.",
+    );
+  }
+}
 
 export type ApplicationRecord = {
   id: string;
@@ -35,6 +46,7 @@ async function streamToString(stream: ReadableStream): Promise<string> {
 // uses allowOverwrite: true and would otherwise silently wipe out every
 // previously saved application on the next save.
 async function readAll(): Promise<ApplicationRecord[]> {
+  assertBlobToken();
   const result = await get(STORE_KEY, { access: "private", useCache: false });
   if (!result) return [];
   const text = await streamToString(result.stream as unknown as ReadableStream);
@@ -42,6 +54,7 @@ async function readAll(): Promise<ApplicationRecord[]> {
 }
 
 async function writeAll(records: ApplicationRecord[]): Promise<void> {
+  assertBlobToken();
   await put(STORE_KEY, JSON.stringify(records, null, 2), {
     access: "private",
     addRandomSuffix: false,
@@ -52,6 +65,7 @@ async function writeAll(records: ApplicationRecord[]): Promise<void> {
 
 export async function saveApplication(record: Omit<ApplicationRecord, "id" | "createdAt">) {
   const all = await readAll();
+  const likelyDuplicateOf = findLikelyDuplicate(all, record);
   const entry: ApplicationRecord = {
     ...record,
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -59,7 +73,7 @@ export async function saveApplication(record: Omit<ApplicationRecord, "id" | "cr
   };
   all.push(entry);
   await writeAll(all);
-  return entry;
+  return { ...entry, likelyDuplicateOf };
 }
 
 export async function listApplications(filter?: Partial<Pick<ApplicationRecord, "status">>) {

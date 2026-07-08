@@ -1,0 +1,10 @@
+{
+  "name": "job-helpr",
+  "version": "0.1.0",
+  "description": "Job search pipeline for Claude Code: job discovery, ATS-safe resume/cover letter tailoring, application tracking (via the job-pipeline-mcp server), and draft-and-confirm outreach + applying. Merged and hardened from four open-source projects.",
+  "author": {
+    "name": "Aaditya Golash"
+  },
+  "license": "MIT",
+  "keywords": ["job-search", "resume", "cover-letter", "career", "apply", "ats"]
+}
