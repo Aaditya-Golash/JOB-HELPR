@@ -1,0 +1,40 @@
+import { profile } from "./profile";
+
+// Escapes LaTeX special characters so JD text or generated prose never breaks compilation.
+export function escapeLatex(input: string): string {
+  return input
+    .replace(/\\/g, "\\textbackslash{}")
+    .replace(/&/g, "\\&")
+    .replace(/%/g, "\\%")
+    .replace(/\$/g, "\\$")
+    .replace(/#/g, "\\#")
+    .replace(/_/g, "\\_")
+    .replace(/\{/g, "\\{")
+    .replace(/\}/g, "\\}")
+    .replace(/~/g, "\\textasciitilde{}")
+    .replace(/\^/g, "\\textasciicircum{}");
+}
+
+// Picks the 3-5 best matching projects for a job description by simple
+// keyword overlap against project tags/name/task text. Deterministic and
+// explainable rather than a black box, so it is easy to sanity check.
+export function selectProjects(jobDescription: string, count = 4) {
+  const jd = jobDescription.toLowerCase();
+
+  const scored = profile.projects.map((p) => {
+    const haystack = `${p.name} ${p.tags.join(" ")} ${p.task} ${p.approach}`.toLowerCase();
+    let score = 0;
+    for (const tag of p.tags) {
+      if (jd.includes(tag.toLowerCase())) score += 3;
+    }
+    // light bonus for individual words from the project overlapping the JD
+    for (const word of haystack.split(/\W+/)) {
+      if (word.length > 4 && jd.includes(word)) score += 1;
+    }
+    return { project: p, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  const clamped = Math.min(Math.max(count, 3), 5);
+  return scored.slice(0, clamped).map((s) => s.project);
+}
