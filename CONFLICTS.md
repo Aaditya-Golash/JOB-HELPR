@@ -111,3 +111,46 @@ solve a real problem better than starting fresh (header-based tracker
 parsing, dedup logic, the seniority-collapse fix concept for role matching).
 If a specific career-ops script turns out to be needed that isn't here yet,
 it's a `git clone santifer/career-ops` away, not lost.
+
+## 9. career-ops's scan/score engine, and two corrections to #6-#8 above
+
+**Follow-up scope decision**: after #8 above shipped without career-ops's
+45+-portal scanner or its A-G evaluation system, the account owner asked for
+that piece to be ported too. Unlike the dedup logic, career-ops's scanner
+(`modes/scan.md` + 58 files in `providers/`) is a standalone Node app hitting
+its own HTTP client against locally-configured company lists — not something
+that vendors cleanly into a Claude Code skill. What got ported instead is the
+*strategy*: `shared/references/job-portals.md` (the tiered discovery order —
+direct public ATS API call, then direct page navigation, then broad web
+search, cheapest/most-reliable first) and `shared/references/
+scoring-rubric.md` (the 1-5 scoring dimensions and the separate,
+never-blended posting-legitimacy check). The Greenhouse and Lever public API
+endpoint formats documented in `job-portals.md` were independently verified
+against each platform's own developer docs before being written down, not
+carried over from career-ops's code as-is.
+
+**Two corrections, found while doing that verification directly against
+career-ops's real source** (not just re-stated from the original merge
+session, which this repo's own `CONFLICTS.md` #5 established as the right
+standard):
+
+1. **The scoring system is not "A-F" or "10 weighted dimensions."** An
+   earlier description of this repo (in conversation, not previously written
+   into this file) characterized it that way. The real system
+   (`modes/_shared.md`, `modes/oferta.md`) is a 1-5 numeric score across six
+   dimensions (match on profile/CV, role alignment, comp, cultural signals,
+   red flags, global average), with the "A-G" label referring to seven
+   *evaluation workflow blocks* (role summary, CV match, level strategy,
+   comp, customization, interview prep, legitimacy) — not a letter grade.
+   `scoring-rubric.md` reflects the real 1-5 system.
+2. **No file literally named `role-matcher.mjs` could be confirmed to
+   exist** in career-ops via the GitHub API and raw-content checks run
+   during this port (GitHub's code search requires authentication this
+   session didn't have, so this isn't a fully exhaustive check). The real,
+   confirmed mechanism for seniority-aware filtering is a `positive` /
+   `negative` / `seniority_boost` keyword configuration referenced in
+   `modes/scan.md`. The underlying concept the original merge captured
+   (don't collapse seniority signals into plain keyword overlap) is still
+   accurate and still worth keeping in `job-search/SKILL.md` — the filename
+   attribution was the part that couldn't be verified, not the lesson
+   itself.

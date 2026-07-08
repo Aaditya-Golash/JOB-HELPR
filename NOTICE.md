@@ -11,9 +11,18 @@ cases) from the following open-source projects:
   lualatex fix in `shared/references/ats-patterns.md`.
 - **santifer/career-ops** — MIT License, Copyright (c) 2026 Santiago
   Fernández de Valderrama. Source for the duplicate-detection logic adapted
-  into `shared/scripts/dedup-check.mjs` and `mcp/lib/dedup.ts`, and the
-  explicit no-auto-submit design principle referenced in
-  `shared/references/confirmation-gates.md`.
+  into `shared/scripts/dedup-check.mjs` and `mcp/lib/dedup.ts`; the explicit
+  no-auto-submit design principle referenced in
+  `shared/references/confirmation-gates.md`; the 1-5 scoring rubric and
+  posting-legitimacy check adapted into
+  `shared/references/scoring-rubric.md` (from `modes/_shared.md` and
+  `modes/oferta.md`, with the AI-specific archetype list replaced by
+  role-family detection driven by the saved profile — see `CONFLICTS.md`
+  #9); and the tiered discovery strategy and public-ATS-API approach adapted
+  into `shared/references/job-portals.md` (from `modes/scan.md` and the
+  `providers/` adapters — reimplemented as direct API calls rather than
+  vendoring career-ops's own Node HTTP client, since this plugin runs inside
+  Claude Code rather than as a standalone service).
 - **proficientlyjobs/proficiently-claude-skills** — declared MIT in its
   `plugin.json`, though the cloned repo did not include a standalone LICENSE
   file at the time of this merge (worth confirming directly with the
