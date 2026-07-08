@@ -1,18 +1,25 @@
 import { profile } from "./profile";
 
-// Escapes LaTeX special characters so JD text or generated prose never breaks compilation.
+const LATEX_ESCAPES: Record<string, string> = {
+  "\\": "\\textbackslash{}",
+  "&": "\\&",
+  "%": "\\%",
+  "$": "\\$",
+  "#": "\\#",
+  "_": "\\_",
+  "{": "\\{",
+  "}": "\\}",
+  "~": "\\textasciitilde{}",
+  "^": "\\textasciicircum{}",
+};
+
+// Escapes LaTeX special characters so JD text or generated prose never breaks
+// compilation. A single-pass replace over the *original* string -- chaining
+// sequential .replace() calls (the previous implementation) re-escapes the
+// literal '{' and '}' that the backslash/tilde/caret replacements themselves
+// introduce, corrupting e.g. "\textbackslash{}" into "\textbackslash\{\}".
 export function escapeLatex(input: string): string {
-  return input
-    .replace(/\\/g, "\\textbackslash{}")
-    .replace(/&/g, "\\&")
-    .replace(/%/g, "\\%")
-    .replace(/\$/g, "\\$")
-    .replace(/#/g, "\\#")
-    .replace(/_/g, "\\_")
-    .replace(/\{/g, "\\{")
-    .replace(/\}/g, "\\}")
-    .replace(/~/g, "\\textasciitilde{}")
-    .replace(/\^/g, "\\textasciicircum{}");
+  return input.replace(/[\\&%$#_{}~^]/g, (ch) => LATEX_ESCAPES[ch]);
 }
 
 // Picks the 3-5 best matching projects for a job description by simple

@@ -34,6 +34,30 @@ copy the token into a local `.env`. The generate tools work with no setup.
 If the token is missing, `mcp/lib/store.ts` throws a clear error naming the
 fix instead of failing silently.
 
+## Testing
+
+```bash
+npm test              # unit tests for lib/ (match, templates, dedup, store) -- no network, no server needed
+npm run test:watch    # same, in watch mode
+```
+
+`store.test.ts` mocks `@vercel/blob` with an in-memory fake so the full
+save/dedup/list cycle is tested without real credentials.
+
+Two more checks aren't part of `npm test` because they need live network
+access or a running server, which would make CI flaky:
+
+```bash
+npm run check:connectors   # live check of the public Greenhouse/Lever ATS
+                            # APIs documented in plugin/shared/references/job-portals.md
+npm run dev                 # in one terminal
+npm run smoke                # in another -- connects a real MCP client to the
+                              # running server and calls all 5 tools end-to-end.
+                              # save_application/list_applications degrade to
+                              # verifying the clear BLOB_READ_WRITE_TOKEN error
+                              # if no Blob store is configured locally.
+```
+
 ## Deploy
 
 ```bash

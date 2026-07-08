@@ -5,7 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check:connectors": "node scripts/check-ats-connectors.mjs",
+    "smoke": "node scripts/mcp-smoke-test.mjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.6.0",
@@ -16,8 +20,10 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "typescript": "^5.8.2",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@types/node": "20.17.6",
-    "@types/react": "19.2.17"
+    "@types/react": "19.2.17",
+    "typescript": "^5.8.2",
+    "vitest": "^4.1.10"
   }
 }
