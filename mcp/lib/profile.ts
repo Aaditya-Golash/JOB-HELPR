@@ -2,12 +2,22 @@
 // (Aaditya_Resume_2026_UBC.pdf) and cover letters on his machine.
 // Edit this file directly to keep it current — every generator tool reads
 // from here, so this is the single source of truth.
+//
+// email/phone/location come from environment variables rather than being
+// hardcoded, since this repo is public -- unlike linkedin/github (public by
+// design, meant to be found), a phone number and email sitting in plaintext
+// in a public repo is scrapable in a way a resume PDF sent to one employer
+// isn't. Falls back to an obvious placeholder (not a throw) so the generate
+// tools still work with no setup, per mcp/README.md -- see mcp/.env.example.
+function contactField(envVar: string, fallback: string): string {
+  return process.env[envVar]?.trim() || fallback;
+}
 
 export const profile = {
   name: "Aaditya Golash",
-  location: "Kelowna, BC",
-  email: "aadigolash10@outlook.com",
-  phone: "250-864-6046",
+  location: contactField("CONTACT_LOCATION", "[location not configured -- set CONTACT_LOCATION]"),
+  email: contactField("CONTACT_EMAIL", "[email not configured -- set CONTACT_EMAIL]"),
+  phone: contactField("CONTACT_PHONE", "[phone not configured -- set CONTACT_PHONE]"),
   linkedin: "linkedin.com/in/aaditya-golash",
   github: "github.com/Aaditya-Golash",
 
