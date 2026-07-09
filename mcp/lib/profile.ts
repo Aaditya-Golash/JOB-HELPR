@@ -54,7 +54,7 @@ export const profile = {
       bullets: [
         "Resolved 110 plus daily ServiceNow incidents under SLA requirements, supporting enterprise IT systems for 12,000 plus students and staff",
         "Ran incident trend analysis to identify the top recurring failure types across campus systems, then partnered with UBC Vancouver engineering to redesign affected workflows and reduce repeat incident rates",
-        "Rebuilt knowledge base KB0019190 by restructuring metadata and content tagging, improving search accuracy for support teams across campus",
+        "Rebuilt knowledge base KB0019190, rewriting content in plain student-facing language instead of IT jargon and removing outdated material, cutting recurring related incidents by 70 percent",
         "Contributed to a Microsoft 365 migration and AI chatbot rollout, supporting user testing and drafting end user documentation for both initiatives",
         "Produced weekly operational reports from ServiceNow data, surfacing trends in ticket volume, resolution times, and system failures for IT leadership",
       ],
