@@ -7,3 +7,4 @@ node_modules/
 __pycache__/
 *.tsbuildinfo
 .claude/settings.local.json
+.private/
