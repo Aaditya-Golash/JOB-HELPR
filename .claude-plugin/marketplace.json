@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "job-helpr",
-      "source": "./",
+      "source": "./plugin",
       "description": "Job search pipeline for Claude Code",
       "category": "productivity"
     }
