@@ -18,7 +18,7 @@ export const profile = {
   location: contactField("CONTACT_LOCATION", "[location not configured -- set CONTACT_LOCATION]"),
   email: contactField("CONTACT_EMAIL", "[email not configured -- set CONTACT_EMAIL]"),
   phone: contactField("CONTACT_PHONE", "[phone not configured -- set CONTACT_PHONE]"),
-  linkedin: "linkedin.com/in/aaditya-golash",
+  linkedin: "https://www.linkedin.com/in/aaditya-golash/",
   github: "github.com/Aaditya-Golash",
 
   education: {

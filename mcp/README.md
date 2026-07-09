@@ -1,8 +1,8 @@
 # job-pipeline-mcp
 
-MCP server exposing 5 tools for the job search pipeline: `generate_resume`,
+MCP server exposing 6 tools for the job search pipeline: `generate_resume`,
 `generate_cover_letter`, `save_application`, `list_applications`,
-`get_profile`.
+`get_profile`, `get_mailing_address`.
 
 ## Tools exposed
 
@@ -18,6 +18,12 @@ MCP server exposing 5 tools for the job search pipeline: `generate_resume`,
 - `list_applications` — reads back the tracker, optionally filtered by status.
 - `get_profile` — returns the structured profile data (education, experience,
   projects, skills) this server generates materials from.
+- `get_mailing_address` — region-matched mailing address for an actual ATS
+  form field, given a job's city/province (see `lib/address.ts`).
+  Deliberately not part of `get_profile` or the generate tools, so a street
+  address never ends up baked into a generated resume/cover letter by
+  default — only the `apply` skill calls this, and only when a real form
+  field asks for one.
 
 ## Setup
 
@@ -34,10 +40,19 @@ copy the token into a local `.env`. The generate tools work with no setup.
 If the token is missing, `mcp/lib/store.ts` throws a clear error naming the
 fix instead of failing silently.
 
+`generate_resume` / `generate_cover_letter`'s contact line (`CONTACT_EMAIL`,
+`CONTACT_PHONE`, `CONTACT_LOCATION`) and `get_mailing_address`'s five
+region addresses (`ADDRESS_*`) are also env-var driven — this repo is
+public, and none of those values are committed anywhere, even as an
+example. Without them set, the contact fields show an obvious placeholder
+and `get_mailing_address` returns `address: null` for a matched region
+rather than fabricating a value. See `.env.example` for the full list and
+`lib/address.ts` for exactly which cities map to which region.
+
 ## Testing
 
 ```bash
-npm test              # unit tests for lib/ (match, templates, dedup, store) -- no network, no server needed
+npm test              # unit tests for lib/ (match, templates, dedup, store, address) -- no network, no server needed
 npm run test:watch    # same, in watch mode
 ```
 

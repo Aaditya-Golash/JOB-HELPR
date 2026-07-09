@@ -25,6 +25,14 @@ depth). Upload the tailored resume and cover letter. Fill any short-answer
 questions using the saved work history — never invent an answer that isn't
 grounded in it.
 
+If the form has an actual mailing/physical address field, call
+`job-pipeline-mcp`'s `get_mailing_address` tool with the posting's city/
+province rather than asking the user or guessing — it returns the
+region-matched address on file, or `null` if nothing matches. Never leave a
+mailing-address field populated from a guess, and never pull an address from
+`generate_resume` / `generate_cover_letter` output — those tools don't
+include one on purpose (see `get_mailing_address`'s own description).
+
 ## 3. Stop at the review page. Always.
 
 Once the form reaches its final review/summary page (before any "Submit

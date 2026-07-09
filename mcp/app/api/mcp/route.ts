@@ -3,6 +3,7 @@ import { createMcpHandler } from "mcp-handler";
 import { generateResumeLatex, generateCoverLetterLatex } from "../../../lib/templates";
 import { saveApplication, listApplications } from "../../../lib/store";
 import { profile } from "../../../lib/profile";
+import { selectAddress } from "../../../lib/address";
 
 const handler = createMcpHandler(
   (server) => {
@@ -103,6 +104,18 @@ const handler = createMcpHandler(
       {},
       async () => {
         return { content: [{ type: "text", text: JSON.stringify(profile, null, 2) }] };
+      },
+    );
+
+    server.tool(
+      "get_mailing_address",
+      "Looks up the mailing address to use for a physical/mailing-address field on a real ATS application form, matched by the job's city/province. Deliberately separate from generate_resume and generate_cover_letter -- an address should only be filled into a form field that explicitly asks for one, never baked into a generated resume/cover letter by default. Returns null if no region matches or that region's address isn't configured -- never guesses.",
+      {
+        jobLocation: z.string().describe("e.g. 'Vancouver, BC', 'Toronto, ON', 'Remote - Alberta'"),
+      },
+      async ({ jobLocation }) => {
+        const match = selectAddress(jobLocation);
+        return { content: [{ type: "text", text: JSON.stringify(match, null, 2) }] };
       },
     );
   },

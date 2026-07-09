@@ -24,6 +24,7 @@ const EXPECTED_TOOLS = [
   "save_application",
   "list_applications",
   "get_profile",
+  "get_mailing_address",
 ];
 
 const results = [];
@@ -55,12 +56,12 @@ async function main() {
     process.exit(1);
   }
 
-  // 1. tools/list -- confirms all 5 tools are actually registered and reachable.
+  // 1. tools/list -- confirms all 6 tools are actually registered and reachable.
   const { tools } = await client.listTools();
   const toolNames = tools.map((t) => t.name).sort();
   const missing = EXPECTED_TOOLS.filter((t) => !toolNames.includes(t));
   record(
-    "tools/list exposes all 5 expected tools",
+    `tools/list exposes all ${EXPECTED_TOOLS.length} expected tools`,
     missing.length === 0,
     missing.length ? `missing: ${missing.join(", ")}` : toolNames.join(", "),
   );
@@ -151,6 +152,29 @@ async function main() {
     } else {
       record("save_application / list_applications", false, message);
     }
+  }
+
+  // 7. get_mailing_address -- deliberately never logs the actual matched
+  // address value (only whether one was returned), since this script's
+  // output is a terminal/log, not a secure channel, and a real street
+  // address shouldn't end up there even when running against real env vars.
+  try {
+    const matchedText = await callTool(client, "get_mailing_address", { jobLocation: "Vancouver, BC" });
+    const matched = JSON.parse(matchedText);
+    record(
+      "get_mailing_address matches a known city to its region",
+      matched?.region === "vancouver",
+      `region=${matched?.region}, address configured=${matched?.address !== null}`,
+    );
+
+    const unmatchedText = await callTool(client, "get_mailing_address", { jobLocation: "Winnipeg, MB" });
+    const unmatched = JSON.parse(unmatchedText);
+    record(
+      "get_mailing_address returns null (not a guess) for an unmatched location",
+      unmatched === null,
+    );
+  } catch (err) {
+    record("get_mailing_address", false, String(err.message ?? err));
   }
 
   await client.close();
