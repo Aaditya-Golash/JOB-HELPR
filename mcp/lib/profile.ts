@@ -15,9 +15,9 @@ function contactField(envVar: string, fallback: string): string {
 
 export const profile = {
   name: "Aaditya Golash",
-  location: contactField("CONTACT_LOCATION", "[location not configured -- set CONTACT_LOCATION]"),
-  email: contactField("CONTACT_EMAIL", "[email not configured -- set CONTACT_EMAIL]"),
-  phone: contactField("CONTACT_PHONE", "[phone not configured -- set CONTACT_PHONE]"),
+  location: contactField("CONTACT_LOCATION", "British Columbia"),
+  email: contactField("CONTACT_EMAIL", "aadigolash10@outlook.com"),
+  phone: contactField("CONTACT_PHONE", "+12508646046"),
   linkedin: "https://www.linkedin.com/in/aaditya-golash/",
   github: "github.com/Aaditya-Golash",
 
@@ -55,7 +55,7 @@ export const profile = {
   experience: [
     {
       title: "Director-at-Large",
-      org: "Student Union of UBC Okanagan",
+      org: "Student Union of UBC",
       location: "Kelowna, BC",
       dates: "May 2025 – Apr 2026",
       bullets: [

@@ -14,6 +14,9 @@
 type Region = {
   key: string;
   envVar: string;
+  city: string;
+  defaultAddress: string;
+  priority: number;
   // Keyword match is intentionally generous (city + well-known surrounding
   // municipalities) rather than exhaustive -- if a location doesn't match
   // clearly, this returns no match rather than a wrong guess.
@@ -22,41 +25,50 @@ type Region = {
 
 const REGIONS: Region[] = [
   {
-    key: "vancouver",
-    envVar: "ADDRESS_VANCOUVER",
+    key: "ontario-quebec-nova-scotia",
+    envVar: "ADDRESS_TORONTO",
+    city: "Toronto, ON",
+    defaultAddress: "155 Yorkville Ave, Toronto, ON M5R 0B4",
+    priority: 1,
     keywords: [
-      "vancouver", "burnaby", "richmond", "surrey", "coquitlam",
-      "north vancouver", "west vancouver", "delta", "langley",
-      "new westminster", "port coquitlam", "port moody", "maple ridge",
-      "white rock", "lower mainland",
+      "toronto", "mississauga", "brampton", "markham", "vaughan", "ottawa",
+      "ontario", "quebec", "montreal", "nova scotia", "halifax",
     ],
   },
   {
     key: "calgary",
     envVar: "ADDRESS_CALGARY",
-    keywords: ["calgary", "airdrie", "okotoks", "cochrane", "chestermere"],
+    city: "Calgary, AB",
+    defaultAddress: "204 Coville Crescent NE, Calgary, AB T3K 5J5",
+    priority: 2,
+    keywords: ["calgary", "airdrie", "okotoks", "cochrane"],
   },
   {
     key: "edmonton",
     envVar: "ADDRESS_EDMONTON",
-    keywords: [
-      "edmonton", "sherwood park", "st. albert", "st albert",
-      "spruce grove", "leduc", "fort saskatchewan", "strathcona",
-    ],
+    city: "Edmonton, AB",
+    defaultAddress: "396 Meadowview Tsse., Sherwood Park, AB T8H 1X6",
+    priority: 3,
+    keywords: ["edmonton", "sherwood park", "st. albert", "st albert", "spruce grove", "leduc"],
   },
   {
-    key: "ontario-quebec-nova-scotia",
-    envVar: "ADDRESS_TORONTO",
+    key: "vancouver",
+    envVar: "ADDRESS_VANCOUVER",
+    city: "Vancouver, BC",
+    defaultAddress: "275 N Kootenay St, Vancouver, BC V5K 3R2",
+    priority: 4,
     keywords: [
-      "ontario", "toronto", "ottawa", "mississauga", "brampton", "hamilton",
-      "london", "kitchener", "waterloo", "markham", "vaughan",
-      "quebec", "montreal", "quebec city", "nova scotia", "halifax",
-      "dartmouth",
+      "vancouver", "burnaby", "richmond", "surrey", "coquitlam",
+      "north vancouver", "west vancouver", "delta", "langley",
+      "new westminster", "lower mainland",
     ],
   },
   {
     key: "kelowna",
     envVar: "ADDRESS_KELOWNA",
+    city: "Kelowna, BC",
+    defaultAddress: "881 Academy Way, Kelowna, BC V1V 0A2",
+    priority: 5,
     // Also the default fallback for an otherwise-unmatched BC location,
     // since it's the home-base address -- see selectAddress().
     keywords: ["kelowna", "west kelowna", "lake country", "peachland", "okanagan"],
@@ -67,29 +79,72 @@ const BC_FALLBACK_KEYWORDS = ["british columbia", "bc", "b.c."];
 
 export type AddressMatch = {
   region: string;
+  city: string;
   address: string | null;
 };
 
-// Matches on substring, longest keyword first, so "north vancouver" wins
-// over a bare "vancouver" keyword collision, and so on across regions.
-export function selectAddress(jobLocation: string): AddressMatch | null {
-  const location = String(jobLocation ?? "").toLowerCase();
+export type ApplicationLocation = {
+  cityProvince: string;
+  fullAddress: string | null;
+  region: string | null;
+  matchReason: string;
+};
+
+function selectRegion(jobDescription: string, jobLocation?: string): { region: Region | null; matchReason: string } {
+  const directLocation = String(jobLocation ?? "").trim();
+  const text = `${directLocation} ${jobDescription ?? ""}`.toLowerCase();
 
   const allMatches = REGIONS
     .flatMap((region) => region.keywords.map((keyword) => ({ region, keyword })))
-    .filter(({ keyword }) => location.includes(keyword))
-    .sort((a, b) => b.keyword.length - a.keyword.length);
+    .filter(({ keyword }) => text.includes(keyword))
+    .sort((a, b) => a.region.priority - b.region.priority || b.keyword.length - a.keyword.length);
 
   let region: Region | undefined = allMatches[0]?.region;
 
-  if (!region && BC_FALLBACK_KEYWORDS.some((kw) => location.includes(kw))) {
+  if (!region && BC_FALLBACK_KEYWORDS.some((kw) => text.includes(kw))) {
     region = REGIONS.find((r) => r.key === "kelowna");
+    return { region: region ?? null, matchReason: "BC fallback to Kelowna" };
   }
 
-  if (!region) return null;
+  if (!region) return { region: null, matchReason: "No usable location match" };
+  return {
+    region,
+    matchReason: allMatches.length > 1 ? "Multiple locations matched; priority order applied" : "Direct city/region match",
+  };
+}
+
+export function selectApplicationLocation(jobDescription: string, jobLocation?: string): ApplicationLocation {
+  const { region, matchReason } = selectRegion(jobDescription, jobLocation);
+  if (!region) {
+    return {
+      cityProvince: "British Columbia",
+      fullAddress: null,
+      region: null,
+      matchReason,
+    };
+  }
+  return {
+    cityProvince: region.city,
+    fullAddress: process.env[region.envVar]?.trim() || region.defaultAddress,
+    region: region.key,
+    matchReason,
+  };
+}
+
+export function selectResumeCity(jobLocation: string): string {
+  return selectApplicationLocation(jobLocation).cityProvince;
+}
+
+// Matches on substring and applies the configured multi-location priority:
+// Toronto, Calgary, Edmonton, Vancouver, then Kelowna.
+export function selectAddress(jobLocation: string): AddressMatch | null {
+  const selected = selectApplicationLocation(jobLocation);
+
+  if (!selected.region) return null;
 
   return {
-    region: region.key,
-    address: process.env[region.envVar]?.trim() || null,
+    region: selected.region,
+    city: selected.cityProvince,
+    address: selected.fullAddress,
   };
 }

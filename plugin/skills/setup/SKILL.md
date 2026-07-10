@@ -32,8 +32,17 @@ Ask for (skip any already known):
 The one-page resume is a summary, not the source material. Walk through each
 past role and ask about context, accomplishments with real numbers, and why
 the person left — this is what makes later tailored resumes and cover letters
-specific instead of generic. Save the result using
-`shared/templates/profile.md` as the template.
+specific instead of generic.
+
+Store only compact canonical preferences/profile facts. Do not dump full chat
+history, application history, generated LaTeX, generated PDFs, or long logs into
+`.job-helpr/profile.md`. If profile state already exists, summarize or overwrite
+the relevant canonical fields instead of appending endlessly. Treat
+`.job-helpr/profile.md` as local runtime state, not source documentation, and do
+not ask Claude to read `.job-helpr/` after setup. Stable setup instructions
+belong in tracked docs such as `mcp/MCP_SETUP.md`,
+`plugin/shared/references/profile-source.md`, or `docs/job-helpr-setup.md`.
+Use `shared/templates/profile.md` only as the compact shape to capture.
 
 ## 4. Confirm the tracker backend
 

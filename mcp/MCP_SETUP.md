@@ -36,3 +36,41 @@ error.
 
 The plugin manifest format used here does not provision a user-specific remote
 MCP URL or secret header. This separate connection step is therefore required.
+
+## Claude Code context hygiene
+
+Generated PDFs and LaTeX logs, `.next`, `node_modules`, uploaded archives, and
+`.job-helpr` are ignored so they do not create oversized Claude/Codex cache
+reads. Inspect only files relevant to the current task. Generated documents
+belong in `mcp/generated/` and must not be committed. `.job-helpr/` is local
+runtime/plugin state, not source documentation: keep it locally, but do not
+commit it. In particular, `.job-helpr/profile.md` is runtime profile/preference
+state and should stay compact; stable setup instructions belong in tracked docs
+or source files instead. When a task needs a generated PDF, regenerate or
+inspect that file directly instead of retaining the generated directory in the
+default project context.
+
+Do not run `job-helpr setup` for small edits. Use setup only when installing,
+changing preferences, or repairing configuration. For small code changes, tell
+Claude exactly which files to inspect. After a lockout or reset caused by huge
+context, run `claude compact` or restart the CLI before continuing.
+
+MCP tools should return compact responses by default. Use `get_profile` with
+`detailLevel: "summary"` unless full profile data is needed for document
+generation. Use `list_applications` with `limit` and filters such as `status`,
+`company`, `role`, or `since`; do not request full application history unless
+the task specifically needs it. Generated LaTeX is omitted by default from
+generation tools; request it explicitly with `includeLatex: true` when rendering
+documents.
+
+## Token safety checklist
+
+Before starting Claude Code:
+
+1. Confirm `.claudeignore` exists.
+2. Confirm `.job-helpr/`, `.next/`, `node_modules/`, `mcp/generated/`, PDFs,
+   logs, and zip files are ignored.
+3. Do not run setup unless needed.
+4. Ask Claude to inspect only task-relevant files.
+5. Prefer specific MCP lookups over broad history/list calls.
+6. If context gets huge, run `claude compact` or restart the CLI.

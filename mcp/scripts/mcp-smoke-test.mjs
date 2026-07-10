@@ -71,12 +71,12 @@ async function main() {
     const text = await callTool(client, "get_profile", {});
     const parsed = JSON.parse(text);
     record(
-      "get_profile returns the structured profile",
-      typeof parsed.name === "string" && Array.isArray(parsed.projects) && parsed.projects.length > 0,
-      `name="${parsed.name}", ${parsed.projects?.length} projects`,
+      "get_profile returns a compact profile summary by default",
+      typeof parsed.name === "string" && parsed.detail === "summary" && Array.isArray(parsed.projects) && parsed.projects.length > 0,
+      `name="${parsed.name}", detail=${parsed.detail}, ${parsed.projects?.length} project summaries`,
     );
   } catch (err) {
-    record("get_profile returns the structured profile", false, String(err.message ?? err));
+    record("get_profile returns a compact profile summary by default", false, String(err.message ?? err));
   }
 
   // 3. generate_resume
@@ -85,6 +85,7 @@ async function main() {
       jobTitle: "Business Analyst",
       company: "Acme Corp",
       jobDescription: "Looking for a business analyst with SQL, data pipelines, and stakeholder reporting experience.",
+      includeLatex: true,
     });
     const ok = text.includes("\\documentclass") && text.includes("\\begin{document}") && text.includes("Projects used:");
     record("generate_resume returns compilable-looking LaTeX", ok, `${text.length} chars`);
@@ -99,6 +100,7 @@ async function main() {
       company: "Acme Corp",
       jobDescription: "Looking for a business analyst with SQL, data pipelines, and stakeholder reporting experience.",
       whyThem: "Acme's data-driven culture is a strong match for my background.",
+      includeLatex: true,
     });
     const ok = text.includes("\\documentclass") && text.includes("Sincerely");
     record("generate_cover_letter returns compilable-looking LaTeX", ok, `${text.length} chars`);
@@ -136,9 +138,9 @@ async function main() {
       second.likelyDuplicateOf ? `duplicate of id=${second.likelyDuplicateOf.id}` : "likelyDuplicateOf was null",
     );
 
-    const listText = await callTool(client, "list_applications", {});
+    const listText = await callTool(client, "list_applications", { company: testCompany, limit: 10 });
     const list = JSON.parse(listText);
-    const found = list.filter((a) => a.company === testCompany);
+    const found = list.applications.filter((a) => a.company === testCompany);
     record("list_applications reads back both saved entries", found.length === 2, `found ${found.length}`);
   } catch (err) {
     const message = String(err.message ?? err);

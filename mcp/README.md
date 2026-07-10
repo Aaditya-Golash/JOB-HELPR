@@ -89,3 +89,22 @@ npx vercel --prod
 Edit `lib/profile.ts` directly whenever experience, projects, or skills
 change — that file is the single source of truth for everything this server
 generates.
+
+## Token safety
+
+Do not run `job-helpr setup` for small edits. Use setup only when installing,
+changing preferences, or repairing configuration. For small code changes, ask
+Claude to inspect only the task-relevant files. Prefer filtered MCP lookups over
+broad tracker history calls, and request full generated LaTeX only when
+rendering a document. If Claude Code context gets huge after a lockout or reset,
+run `claude compact` or restart the CLI before continuing.
+
+Before starting Claude Code:
+
+1. Confirm `.claudeignore` exists.
+2. Confirm `.job-helpr/`, `.next/`, `node_modules/`, `mcp/generated/`, PDFs,
+   logs, and zip files are ignored.
+3. Do not run setup unless needed.
+4. Ask Claude to inspect only task-relevant files.
+5. Prefer specific MCP lookups over broad history/list calls.
+6. If context gets huge, run `claude compact` or restart the CLI.

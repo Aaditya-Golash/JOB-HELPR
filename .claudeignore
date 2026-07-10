@@ -1,0 +1,87 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Next.js / build outputs
+.next/
+**/.next/
+out/
+dist/
+build/
+coverage/
+.vercel/
+
+# Generated document outputs
+mcp/generated/
+mcp/mock-outputs/
+generated/
+exports/
+history/
+logs/
+*.pdf
+*.aux
+*.log
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+
+# Large uploaded/reference archives
+*.zip
+RoleFit-Resume-main/
+RoleFit-Resume-main(1)/
+Jake_s_Resume/
+*.tar
+*.gz
+*.7z
+
+# Local/private state
+.env
+.env.local
+.env.production
+.env.development
+.job-helpr/
+job-helpr/
+**/.job-helpr/
+*.sqlite
+*.db
+*.tmp
+*.bak
+*.csv
+*.jsonl
+applications-export*.json
+job-history*.json
+tracker-dump*.json
+profile-snapshot*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!tsconfig.*.json
+!vercel.json
+!components.json
+
+# Cache/temp files
+.cache/
+tmp/
+temp/
+.DS_Store
+Thumbs.db
+
+# Claude/session/editor noise
+.claude/
+.vscode/
+.idea/
+
+# Package manager noise
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python cache
+**/__pycache__/
+*.pyc
+.pytest_cache/

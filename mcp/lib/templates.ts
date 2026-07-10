@@ -1,11 +1,14 @@
 import { profile } from "./profile";
 import { escapeLatex, selectProjects } from "./match";
+import { RESUME_EVIDENCE, type ResumeProjectKey } from "./evidence";
+import { selectApplicationLocation } from "./address";
 
 type GenInput = {
   jobTitle: string;
   company: string;
   jobDescription: string;
   projectCount?: number;
+  includeFullAddress?: boolean;
 };
 
 // ============================================================================
@@ -63,103 +66,7 @@ function classifyResumeRole(jobTitle: string, jobDescription: string): { type: R
   return { type: best.type, confidence: best.score };
 }
 
-// City/province only -- never a street address, so this is safe to hardcode
-// in the public repo (unlike lib/address.ts's real mailing addresses).
-// Picks the header/education location for THIS application; never touched
-// for Professional Experience, which always shows where Aaditya actually
-// worked (Kelowna, BC for both real roles), regardless of the job's city.
-const RESUME_LOCATION_RULES: { pattern: RegExp; location: string }[] = [
-  { pattern: /vancouver|burnaby|richmond|surrey|coquitlam|north vancouver|west vancouver|delta|langley|new westminster|lower mainland/i, location: "Vancouver, BC" },
-  { pattern: /calgary|airdrie|okotoks|cochrane/i, location: "Calgary, AB" },
-  { pattern: /edmonton|sherwood park|st\.? albert|spruce grove|leduc/i, location: "Edmonton, AB" },
-  { pattern: /toronto|ontario|ottawa|mississauga|quebec|montreal|nova scotia|halifax/i, location: "Toronto, ON" },
-  { pattern: /kelowna|okanagan|west kelowna/i, location: "Kelowna, BC" },
-];
-
-function selectResumeLocation(jobDescription: string): string {
-  const text = jobDescription.toLowerCase();
-  for (const rule of RESUME_LOCATION_RULES) {
-    if (rule.pattern.test(text)) return rule.location;
-  }
-  return "Kelowna, BC";
-}
-
-type ResumeProjectKey = "taAllocation" | "tsxPortfolio" | "eyeTracking" | "venueWorks" | "socialMedia" | "calmora" | "helpR";
-
-// Short, compact, symbol-heavy bullets -- most of TA Allocation/TSX
-// Portfolio/Eye Tracking are lightly tightened from Aaditya's own real,
-// already-ATS-tested resume rather than rewritten from scratch. VenueWorks/
-// Social Media/Calmora/HelpR are freshly authored in the same style from
-// the account owner's own stated facts (see CONFLICTS.md).
-const RESUME_PROJECTS: Record<ResumeProjectKey, { name: string; role: string; bullets: string[] }> = {
-  taAllocation: {
-    name: "TA Allocation & Management System",
-    role: "Backend Lead, Product Delivery",
-    bullets: [
-      "Delivered a full-stack allocation platform (Flask, MySQL) replacing a manual process, handling 250+ TA applications per term",
-      "Defined product requirements and maintained a backlog of 36+ features covering scheduling, conflict resolution, and role-based access",
-      "Ran sprint planning with a 6-member Agile team, shipping through a Docker CI/CD pipeline with 100% test coverage",
-      "Cut TA assignment processing time by 70%, reducing coordinator workload from multiple days to a few hours per term",
-    ],
-  },
-  tsxPortfolio: {
-    name: "Quantitative Portfolio Optimization (TSX)",
-    role: "Data Lead",
-    bullets: [
-      "Built an automated financial data pipeline processing 37 months of TSX equity data for portfolio optimization",
-      "Computed log returns and engineered an 11x11 covariance matrix to model asset risk and interdependencies",
-      "Implemented Markowitz portfolio optimization, generating the efficient frontier and risk-return optimal allocations",
-      "Led a small team validating all computations for accuracy, scoring among the top 5 in class",
-    ],
-  },
-  eyeTracking: {
-    name: "Eye-Tracking Usability Research Pipeline",
-    role: "Tobii Pro Glasses 3, WISEC App",
-    bullets: [
-      "Built a Python post-processing pipeline for Tobii Pro Glasses 3 exports, parsing gaze, pupil, and IMU streams into structured metrics",
-      "Migrated legacy Linux research tools to Windows, restoring full team access to the analysis environment",
-      "Computed fixation summaries, baseline-corrected pupil dilation, and an IMU-based head-motion proxy for attention shifts",
-      "Built an interactive dashboard with six analysis tabs for self-service recording review without writing code",
-    ],
-  },
-  venueWorks: {
-    name: "VenueWorks",
-    role: "Co-Founder, Product Strategy Lead",
-    bullets: [
-      "Identified $5M+ in idle annual venue capacity and benchmarked 300+ local properties to support pricing and market-entry strategy",
-      "Built a commission-plus-premium-listing revenue model and investor pitch, placing 2nd and winning $1,500 in funding",
-      "Led product strategy for a marketplace connecting event venues with clients, evaluating supply and demand fit",
-      "Benchmarked competitors including Peerspace, LiquidSpace, and Giggster to validate positioning",
-    ],
-  },
-  socialMedia: {
-    name: "Social Media Growth & Brand Strategy",
-    role: "Content Strategy Lead",
-    bullets: [
-      "Built and grew multiple digital brand accounts to 4M+ combined organic views without paid spend",
-      "Grew one TikTok account to 2M+ organic views within a year using trend analysis and hook testing",
-      "Built a fraternity chapter TikTok from zero to 10K+ views, applying audience analytics to content strategy",
-    ],
-  },
-  calmora: {
-    name: "Calmora",
-    role: "Founder",
-    bullets: [
-      "Built a Wizard-of-Oz MVP for a services marketplace, using Python automation for outreach and data cleaning",
-      "Coordinated outreach workflows through Discord-based command control and logging for rapid iteration",
-      "Validated early demand signals in Vancouver and Calgary through cold outreach and Reddit research",
-    ],
-  },
-  helpR: {
-    name: "HelpR",
-    role: "Founder",
-    bullets: [
-      "Built an Android emergency response app in Java with Firebase, surfacing wildfire, accident, and hazard alerts",
-      "Designed crowdsourced reporting and community validation workflows for real-time hazard data",
-      "Pitched HelpR to the Fire Chief of Alberta as a public-safety application",
-    ],
-  },
-};
+const EDUCATION_LOCATION = "British Columbia";
 
 // Which 3 projects, and how many bullets from each pool (clamped to the
 // pool's actual length in selectResumeProjects). Strongest project first;
@@ -274,16 +181,68 @@ const RESUME_SKILLS_PLAN: Record<ResumeRoleType, SkillLine[]> = {
 // in projects, per the base format's own design.
 const EXPERIENCE_FIRST_ROLES: ResumeRoleType[] = ["supply_chain_ops"];
 
-type ResumeContentPlan = {
+export type ResumeContentPlan = {
   roleType: ResumeRoleType;
   confidence: number;
   location: string;
   experienceFirst: boolean;
   experience: { title: string; org: string; location: string; dates: string; bullets: string[] }[];
-  projects: { name: string; role: string; bullets: string[] }[];
+  projects: { name: string; role: string; bullets: string[]; selectionReason: string }[];
+  excludedEvidence: { name: string; reason: string }[];
   skills: SkillLine[];
   totalBullets: number;
+  strengthScore: number;
+  baseStrengthThreshold: number;
+  fillReasons: string[];
 };
+
+const BASE_RESUME_STRENGTH_THRESHOLD = 30;
+const PREFERRED_MIN_BULLETS = 15;
+const PREFERRED_MAX_BULLETS = 17;
+const HARD_BULLET_CAP = 18;
+
+const ROLE_CRITICAL_TOOLS: Record<ResumeRoleType, string[]> = {
+  bi_data_analyst: ["Python", "SQL", "Tableau", "Excel", "ServiceNow"],
+  business_systems_analyst: ["SQL", "ServiceNow", "Requirements Gathering", "Tableau"],
+  product: ["SQL", "Requirements Gathering", "Docker", "Tableau"],
+  automation_productops: ["Python", "SQL", "ServiceNow", "REST APIs"],
+  strategy_ops_consulting: ["Python", "SQL", "Tableau", "Cost-Benefit Analysis"],
+  finance_ma_equity: ["Excel", "Financial Analysis", "Portfolio Modeling", "Python", "SQL", "Tableau"],
+  nonprofit_climate_program: ["Cost-Benefit Analysis", "Tableau", "Requirements Gathering"],
+  network_it_systems: ["ServiceNow", "Python", "SQL", "Docker"],
+  software_developer: ["Python", "Flask", "SQL", "Docker", "Git"],
+  supply_chain_ops: ["SQL", "Python", "ServiceNow", "Cost-Benefit Analysis"],
+  marketing_growth: ["GA4", "Adobe Experience Platform", "Tableau", "SQL"],
+  ui_ux_frontend: ["JavaScript", "TypeScript", "HTML/CSS", "Python"],
+};
+
+const TWO_EXPERIENCE_ROLES = new Set<ResumeRoleType>([
+  "bi_data_analyst", "business_systems_analyst", "product", "automation_productops",
+  "strategy_ops_consulting", "finance_ma_equity", "network_it_systems", "software_developer",
+  "ui_ux_frontend",
+]);
+
+export function scoreResumeStrength(plan: ResumeContentPlan): number {
+  const bullets = [...plan.projects.flatMap((project) => project.bullets), ...plan.experience.flatMap((role) => role.bullets)];
+  const allText = `${bullets.join(" ")} ${plan.skills.flatMap((line) => line.items).join(" ")}`;
+  const metricMatches = allText.match(/(?:\$\d[\d,.]*[MK+]*|\b\d+(?:\.\d+)?(?:%|\+|x\d+| months?| features?| applications?| incidents?| students?| properties?| tests?|M\+|K\+))/gi) ?? [];
+  let score = metricMatches.length;
+  score += (allText.match(/\$\d/gi) ?? []).length * 2;
+  score += bullets.filter((bullet) => /delivered|shipped|built .*platform|now runs|deployed|migration|rollout/i.test(bullet)).length * 2;
+  score += bullets.filter((bullet) => /(?:cut|reduc\w*).*(?:\d+%|days?|hours?)/i.test(bullet)).length * 2;
+  score += bullets.filter((bullet) => /\d[\d,]*\+? (?:students|users|applications|properties|organizations|incidents)/i.test(bullet)).length;
+
+  const criticalTools = ROLE_CRITICAL_TOOLS[plan.roleType];
+  score += criticalTools.filter((tool) => allText.toLowerCase().includes(tool.toLowerCase())).length;
+  score += plan.projects.length;
+  score += plan.experience.length;
+
+  if (plan.totalBullets < 14) score -= (14 - plan.totalBullets) * 3;
+  if (TWO_EXPERIENCE_ROLES.has(plan.roleType) && plan.experience.length < 2) score -= 6;
+  if (plan.skills.length < 3) score -= (3 - plan.skills.length) * 4;
+  if (plan.skills.some((line) => line.items.length < 3)) score -= 2;
+  return score;
+}
 
 function selectResumeExperience(roleType: ResumeRoleType): ResumeContentPlan["experience"] {
   const plan = RESUME_EXPERIENCE_PLAN[roleType];
@@ -305,9 +264,14 @@ function selectResumeExperience(roleType: ResumeRoleType): ResumeContentPlan["ex
 
 function selectResumeProjects(roleType: ResumeRoleType, maxProjects = 3): ResumeContentPlan["projects"] {
   const plan = RESUME_PROJECT_PLAN[roleType].slice(0, maxProjects);
-  return plan.map(({ key, bullets }) => {
-    const source = RESUME_PROJECTS[key];
-    return { name: source.name, role: source.role, bullets: source.bullets.slice(0, Math.min(bullets, source.bullets.length)) };
+  return plan.map(({ key, bullets }, index) => {
+    const source = RESUME_EVIDENCE[key];
+    return {
+      name: source.name,
+      role: source.role,
+      bullets: source.bullets.slice(0, Math.min(bullets, source.bullets.length)),
+      selectionReason: `Ranked ${index + 1} for ${roleType}; strength ${source.strength}/5 and role relevance: ${source.roleRelevance.join(", ")}`,
+    };
   });
 }
 
@@ -319,22 +283,116 @@ function buildResumeContentPlan(input: GenInput): ResumeContentPlan {
   const { type: roleType, confidence } = classifyResumeRole(input.jobTitle, input.jobDescription);
   const experience = selectResumeExperience(roleType);
   const projects = selectResumeProjects(roleType, input.projectCount ?? 3);
+  const selectedNames = new Set(projects.map((project) => project.name));
   const skills = selectResumeSkills(roleType);
   const totalBullets =
     2 + // education bullets, fixed
     experience.reduce((sum, e) => sum + e.bullets.length, 0) +
     projects.reduce((sum, p) => sum + p.bullets.length, 0);
 
-  return {
+  const plan: ResumeContentPlan = {
     roleType,
     confidence,
-    location: selectResumeLocation(input.jobDescription),
+    location: selectApplicationLocation(input.jobDescription).cityProvince,
     experienceFirst: EXPERIENCE_FIRST_ROLES.includes(roleType),
     experience,
     projects,
+    excludedEvidence: Object.values(RESUME_EVIDENCE)
+      .filter((evidence) => !selectedNames.has(evidence.name))
+      .map((evidence) => ({ name: evidence.name, reason: "Lower deterministic rank for this role or excluded by the 3-project one-page cap" })),
     skills,
     totalBullets,
+    strengthScore: 0,
+    baseStrengthThreshold: BASE_RESUME_STRENGTH_THRESHOLD,
+    fillReasons: [],
   };
+  plan.strengthScore = scoreResumeStrength(plan);
+  return plan;
+}
+
+function fillResumeToBaseStrength(
+  plan: ResumeContentPlan,
+  roleType: ResumeRoleType,
+  _jobDescription: string,
+): ResumeContentPlan {
+  const next: ResumeContentPlan = {
+    ...plan,
+    experience: plan.experience.map((role) => ({ ...role, bullets: [...role.bullets] })),
+    projects: plan.projects.map((project) => ({ ...project, bullets: [...project.bullets] })),
+    fillReasons: [...plan.fillReasons],
+  };
+
+  const needsProof = () => next.totalBullets < PREFERRED_MIN_BULLETS || next.strengthScore < BASE_RESUME_STRENGTH_THRESHOLD;
+  const hasCapacity = () => next.totalBullets < HARD_BULLET_CAP && (next.totalBullets < PREFERRED_MAX_BULLETS || next.strengthScore < BASE_RESUME_STRENGTH_THRESHOLD);
+  const recompute = () => {
+    next.totalBullets = 2 + next.experience.reduce((sum, role) => sum + role.bullets.length, 0) + next.projects.reduce((sum, project) => sum + project.bullets.length, 0);
+    next.strengthScore = scoreResumeStrength(next);
+  };
+
+  const sourceExperience = {
+    ubcsuo: profile.experience[0],
+    ubcIT: profile.experience[1],
+  };
+  const experiencePriorities: Record<"ubcsuo" | "ubcIT", number[]> = {
+    ubcsuo: roleType === "finance_ma_equity" ? [0, 1, 3, 2] : roleType === "product" ? [3, 0, 1, 2] : [3, 0, 1, 2],
+    ubcIT: roleType === "finance_ma_equity" ? [0, 3, 1, 2] : roleType === "product" ? [3, 1, 0, 2] : [0, 1, 3, 2],
+  };
+
+  const ensureExperienceRole = (key: "ubcsuo" | "ubcIT") => {
+    const source = sourceExperience[key];
+    let target = next.experience.find((role) => role.title === source.title && role.org === source.org);
+    if (!target && TWO_EXPERIENCE_ROLES.has(roleType) && hasCapacity()) {
+      target = { ...source, dates: source.dates.replace(/\s*[–—]\s*/g, " -- "), bullets: [] };
+      next.experience.push(target);
+      next.fillReasons.push(`Added ${source.title} because ${roleType} resumes require both professional roles when space permits.`);
+    }
+    return target;
+  };
+
+  const addExperienceBullet = (key: "ubcsuo" | "ubcIT", minimum = 0): boolean => {
+    const source = sourceExperience[key];
+    const target = ensureExperienceRole(key);
+    if (!target || !hasCapacity() || (!needsProof() && target.bullets.length >= minimum)) return false;
+    const candidate = experiencePriorities[key].map((index) => source.bullets[index]).find((bullet) => bullet && !target.bullets.includes(bullet));
+    if (!candidate) return false;
+    target.bullets.push(candidate);
+    next.fillReasons.push(`Added ${source.title} fallback proof: ${candidate}`);
+    recompute();
+    return true;
+  };
+
+  const addProjectBullet = (projectIndex: number): boolean => {
+    const target = next.projects[projectIndex];
+    if (!target || !hasCapacity() || !needsProof()) return false;
+    const source = Object.values(RESUME_EVIDENCE).find((evidence) => evidence.name === target.name);
+    const candidate = source?.bullets.find((bullet) => !target.bullets.includes(bullet));
+    if (!candidate || target.bullets.length >= 4) return false;
+    target.bullets.push(candidate);
+    next.fillReasons.push(`Added high-signal fallback bullet to ${target.name}: ${candidate}`);
+    recompute();
+    return true;
+  };
+
+  recompute();
+  if (!needsProof()) return next;
+
+  // Tier 2 fill order: establish two strong bullets in both professional
+  // roles, then deepen the strongest selected projects, then use remaining
+  // high-signal professional proof. Tier 3 projects are never introduced here.
+  for (const key of ["ubcIT", "ubcsuo"] as const) {
+    const target = ensureExperienceRole(key);
+    while (target && target.bullets.length < 2 && hasCapacity() && needsProof()) addExperienceBullet(key, 2);
+  }
+  for (const projectIndex of [0, 1, 2]) {
+    const target = next.projects[projectIndex];
+    while (target && target.bullets.length < 3 && hasCapacity() && needsProof()) addProjectBullet(projectIndex);
+  }
+  for (const key of ["ubcIT", "ubcsuo"] as const) {
+    while (hasCapacity() && needsProof() && addExperienceBullet(key)) {
+      // Continue only while truthful, unused Tier 2 evidence remains.
+    }
+  }
+  return next;
 }
 
 // Content-budget check, run BEFORE rendering. Not a real page-layout
@@ -358,6 +416,7 @@ function shrinkToOnePage(plan: ResumeContentPlan): ResumeContentPlan {
 
   const recompute = () => {
     next.totalBullets = 2 + next.experience.reduce((s, e) => s + e.bullets.length, 0) + next.projects.reduce((s, p) => s + p.bullets.length, 0);
+    next.strengthScore = scoreResumeStrength(next);
   };
 
   // 1. Reduce project bullets (cap every project at 3, weakest last first)
@@ -392,7 +451,7 @@ function resumeSection(title: string, e: (s: string) => string): string {
   return `\\section{${e(title)}}`;
 }
 
-function renderResumeLatex(plan: ResumeContentPlan): string {
+function renderResumeLatex(plan: ResumeContentPlan, visibleHeaderLocation = plan.location): string {
   const e = escapeLatex;
 
   const skillLines = plan.skills.map((s) => `\\textbf{${e(s.label)}:} ${s.items.map(e).join(", ")}\\\\`).join("\n");
@@ -424,7 +483,7 @@ ${experienceBlocks}`;
 
   const linkedinHandle = profile.linkedin.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
   const showGithub = ["software_developer", "network_it_systems", "ui_ux_frontend"].includes(plan.roleType);
-  const contactLine = [plan.location, profile.phone, profile.email, linkedinHandle, ...(showGithub ? [profile.github] : [])]
+  const contactLine = [visibleHeaderLocation, profile.phone, profile.email, linkedinHandle, ...(showGithub ? [profile.github] : [])]
     .map(e)
     .join(" $|$ ");
 
@@ -465,7 +524,7 @@ ${experienceBlocks}`;
 \\end{center}
 
 ${resumeSection("EDUCATION", e)}
-\\textbf{${e(profile.education.school)}} \\hfill ${e(plan.location)}\\\\
+\\textbf{${e(profile.education.school)}} \\hfill ${e(EDUCATION_LOCATION)}\\\\
 \\textit{${e(profile.education.degree)}} \\hfill ${e(profile.education.graduation)}
 \\begin{itemize}
   \\resumeItem{\\textbf{Relevant Coursework:} ${e(profile.education.coursework)}}
@@ -533,12 +592,15 @@ export function auditResumeLatex(latex: string, plan: ResumeContentPlan): Resume
 
 export function generateResumeLatex(input: GenInput): { latex: string; projectsUsed: string[]; plan: ResumeContentPlan } {
   let plan = buildResumeContentPlan(input);
+  plan = fillResumeToBaseStrength(plan, plan.roleType, input.jobDescription);
 
   if (!estimateResumeLength(plan).fitsOnePage) {
     plan = shrinkToOnePage(plan);
   }
 
-  const latex = renderResumeLatex(plan);
+  const selectedLocation = selectApplicationLocation(input.jobDescription);
+  const visibleHeaderLocation = input.includeFullAddress && selectedLocation.fullAddress ? selectedLocation.fullAddress : plan.location;
+  const latex = renderResumeLatex(plan, visibleHeaderLocation);
 
   const audit = auditResumeLatex(latex, plan);
   if (!audit.ok) {
@@ -698,7 +760,7 @@ const PROFESSIONAL_EVIDENCE = {
 
 const PROJECT_EVIDENCE = {
   taAllocation: {
-    text: "I led backend delivery of a full-stack TA allocation platform that processes 250+ applications per term, replacing a manual spreadsheet workflow. With a 6-member Agile team, I translated coordinator needs into 36+ features covering scheduling, conflict detection, and role-based access. The platform shipped through a Docker-based CI/CD pipeline with 100\\% test coverage and a 95\\% pass rate across 50 tests. It cut allocation processing time by 70\\%, reducing a multi-day task to a few hours each term.",
+    text: "I led backend delivery of TA Allocation, a full-stack platform that processes 250+ applications per term, replacing a manual spreadsheet workflow. With a 6-member Agile team, I translated coordinator needs into 36+ features covering scheduling, conflict detection, and role-based access. The platform shipped through a Docker-based CI/CD pipeline with 100\\% test coverage and a 95\\% pass rate across 50 tests. It cut allocation processing time by 70\\%, reducing a multi-day task to a few hours each term.",
     metrics: ["250+ applications per term", "36+ features", "100\\% test coverage", "95\\% pass rate across 50 unit and integration tests", "70\\%"],
   },
   tsxPortfolio: {
@@ -743,13 +805,13 @@ const ROLE_EVIDENCE_PLAN: Record<RoleType, RoleEvidencePlan> = {
   product: {
     professionalKey: "ubcsuo",
     projectKey: "taAllocation",
-    professionalMetrics: ["\\$1.9M operating budget", "150+ student organizations"],
+    professionalMetrics: ["\\$1.9M operating budget"],
     projectMetrics: ["250+ applications per term", "36+ features"],
   },
   automation_productops: {
     professionalKey: "ubcIT",
     projectKey: "calmora",
-    professionalMetrics: ["110+ daily ServiceNow incidents", "70\\%"],
+    professionalMetrics: ["110+ daily ServiceNow incidents"],
     projectMetrics: [],
   },
   strategy_ops_consulting: {
@@ -791,7 +853,10 @@ export function boldMetrics(text: string, metrics: string[]): string {
   for (const metric of metrics) {
     const idx = result.indexOf(metric);
     if (idx === -1) continue;
-    result = result.slice(0, idx) + `\\textbf{${metric}}` + result.slice(idx + metric.length);
+    const hasLeadingSpace = idx > 0 && /\s/.test(result[idx - 1]);
+    const start = hasLeadingSpace ? idx - 1 : idx;
+    const boldedMetric = hasLeadingSpace ? `\\textbf{\\space ${metric}}` : `\\textbf{${metric}}`;
+    result = result.slice(0, start) + boldedMetric + result.slice(idx + metric.length);
   }
   return result;
 }
@@ -808,21 +873,164 @@ function buildProjectProof(roleType: RoleType): string {
   return boldMetrics(block.text, plan.projectMetrics);
 }
 
+type CoverLetterEvidenceSelection = {
+  opening: string;
+  professionalProof: string;
+  projectProof: string;
+  skillBridge: string | null;
+  closing: string;
+  professionalKey: keyof typeof PROFESSIONAL_EVIDENCE;
+  projectKey: keyof typeof PROJECT_EVIDENCE;
+  fillReasons: string[];
+};
+
+const SUPPORTING_COVER_LETTER_PROOF: Record<RoleType, { text: string; metrics: string[]; source: string }> = {
+  automation_productops: {
+    text: "The same approach shaped the TA Allocation platform. 250+ applications per term moved from spreadsheet handling into a structured system spanning 36+ features; the result reduced processing time by 70\\%. This matters in product operations because automation only creates value when the surrounding workflow, ownership, and handoffs become clearer too.",
+    metrics: ["250+ applications per term"],
+    source: "TA Allocation quantified workflow replacement",
+  },
+  bi_data_analyst: {
+    text: "I bring the same reporting discipline to UBCSUO, where I built board-level dashboards that supported technology and operations decisions tied to a \\$1.9M operating budget. That experience reinforced that useful BI is not just accurate; it gives stakeholders a shared definition of performance and a practical next action.",
+    metrics: [],
+    source: "UBCSUO dashboard and governance proof",
+  },
+  product: {
+    text: "My Eye-Tracking research work adds another product lens: I transformed raw gaze, pupil, and motion data into structured behavior metrics and a self-service dashboard researchers could use without writing code. It strengthened how I connect user behavior, product questions, and evidence-based prioritization for usability and delivery tradeoffs.",
+    metrics: [],
+    source: "Eye-Tracking user-behavior analytics",
+  },
+  finance_ma_equity: {
+    text: "VenueWorks added a market-sizing perspective: I identified \\$5M+ in idle annual venue capacity and benchmarked 300+ properties to test pricing assumptions. That required the same investment-analysis discipline: define the market, challenge assumptions, and turn incomplete information into a defensible recommendation.",
+    metrics: ["\\$5M+ in idle annual venue capacity"],
+    source: "VenueWorks market sizing and benchmarking",
+  },
+  strategy_ops_consulting: {
+    text: "At UBC IT, I applied that same structured approach to recurring service failures, using incident trends to prioritize workflow changes and a knowledge-base rebuild that reduced related incidents by 70\\%. The common thread is moving from symptoms to a measurable operating fix.",
+    metrics: [],
+    source: "UBC IT process-improvement proof",
+  },
+  marketing_growth: {
+    text: "VenueWorks complements that audience work with commercial validation: I benchmarked 300+ properties, tested positioning against established marketplaces, and translated the findings into pricing and market-entry assumptions. It shows how I connect attention metrics to an underlying customer and business decision.",
+    metrics: [],
+    source: "VenueWorks market-validation proof",
+  },
+  nonprofit_climate_program: {
+    text: "Across that work, the practical lesson has been that mission outcomes depend on clear funding rules, accountable reporting, and decisions stakeholders can understand. I would bring that same discipline to program delivery, where credibility matters as much as intent.",
+    metrics: [],
+    source: "funding-governance relevance bridge",
+  },
+  network_it_systems: {
+    text: "I also supported a Microsoft 365 migration and AI chatbot rollout, including user testing and documentation needed for adoption. That experience reinforced that reliable systems work includes change management and clear user handoffs, not only the technical implementation.",
+    metrics: [],
+    source: "M365 and AI chatbot adoption proof",
+  },
+};
+
+const ROLE_IMPACT_BRIDGES: Record<RoleType, string> = {
+  automation_productops: "Together, these examples show how I approach product operations: identify repeated friction, make the workflow observable, automate the right steps, and measure whether the new process actually improves delivery.",
+  bi_data_analyst: "Together, these experiences have taught me to treat reporting as an operating system for decisions: definitions must be consistent, data must be trustworthy, and the final dashboard must answer a real stakeholder question.",
+  product: "Together, these projects show how I work as a product analyst: start with the user and operating constraint, translate both into measurable requirements, and use evidence to decide what should be built next.",
+  finance_ma_equity: "Together, these experiences have trained me to connect quantitative analysis with business context, validate assumptions carefully, and communicate the reasoning behind a recommendation rather than presenting a model in isolation.",
+  strategy_ops_consulting: "Together, these examples reflect how I approach ambiguous operating problems: establish the evidence, identify the highest-leverage constraint, and translate the analysis into an implementable sequence of decisions.",
+  marketing_growth: "Together, these examples show how I connect audience behavior, experimentation, and commercial context instead of treating reach as an outcome on its own.",
+  nonprofit_climate_program: "That combination of governance, funding awareness, and measurable delivery is the perspective I would bring to mission-driven program work.",
+  network_it_systems: "Together, these experiences show a systems approach grounded in reliability, user impact, documented handoffs, and continuous improvement.",
+};
+
+const ROLE_STRENGTH_EXTENSIONS: Record<RoleType, string> = {
+  automation_productops: "The value I would bring is practical follow-through: tracing an operational problem from repeated friction through implementation, adoption, and a measurable result that operators can keep using after launch.",
+  bi_data_analyst: "The value I would bring is reporting that remains technically sound while staying clear enough for leaders to use in day-to-day decisions, prioritization discussions, and follow-up operating reviews. That balance is what keeps analysis connected to action after the dashboard is delivered.",
+  product: "The value I would bring is disciplined product judgment grounded in user evidence, delivery constraints, and measurable outcomes rather than feature volume alone, especially when teams need clarity under ambiguity.",
+  finance_ma_equity: "The value I would bring is careful analytical work paired with concise communication about assumptions, tradeoffs, and the business consequence of the model, so recommendations stay both rigorous and usable.",
+  strategy_ops_consulting: "The value I would bring is a practical link between analysis and execution, with clear ownership, measurable outcomes, and communication that keeps stakeholders aligned through implementation.",
+  marketing_growth: "The value I would bring is an experimental mindset that connects audience signals to positioning, customer behavior, and a measurable commercial objective instead of optimizing isolated channel metrics.",
+  nonprofit_climate_program: "The value I would bring is disciplined program execution that respects funding constraints while keeping stakeholder trust and measurable mission outcomes in view across partners, timelines, and reporting.",
+  network_it_systems: "The value I would bring is reliable execution that connects technical operations with clear documentation, user adoption, and measurable service improvement in environments where uptime matters.",
+};
+
+function proseWordCount(text: string): number {
+  return text.replace(/\\[A-Za-z]+(?:\{[^}]*\})?/g, " ").split(/\s+/).filter(Boolean).length;
+}
+
+const COVER_LETTER_MINIMUM_STRENGTH_SENTENCE =
+  "That is the standard I would bring to the role: evidence-backed work that improves the operating rhythm, not just the written deliverable.";
+
+function coverLetterWordCount(selection: CoverLetterEvidenceSelection): number {
+  return [selection.opening, selection.professionalProof, selection.projectProof, selection.skillBridge, selection.closing]
+    .filter((paragraph): paragraph is string => Boolean(paragraph))
+    .join(" ")
+    .replace(/\\[A-Za-z]+(?:\{[^}]*\})?/g, " ")
+    .split(/\s+/)
+    .filter(Boolean).length;
+}
+
+export function fillCoverLetterToStrength(
+  roleType: RoleType,
+  _jobDescription: string,
+  selectedEvidence: CoverLetterEvidenceSelection,
+): CoverLetterEvidenceSelection {
+  const filled = { ...selectedEvidence, fillReasons: [...selectedEvidence.fillReasons] };
+  const directPlan = ROLE_EVIDENCE_PLAN[roleType];
+  const directProjectMetrics = PROJECT_EVIDENCE[directPlan.projectKey].metrics.length;
+  const currentMetrics = (filled.professionalProof.match(/\d[\d,.]*(?:\+|\%|M|K| months?| features?| applications?)/g) ?? []).length
+    + (filled.projectProof.match(/\d[\d,.]*(?:\+|\%|M|K| months?| features?| applications?)/g) ?? []).length;
+  const needsSupport = coverLetterWordCount(filled) < 330 || directProjectMetrics === 0 || currentMetrics < 3;
+
+  if (needsSupport) {
+    const support = SUPPORTING_COVER_LETTER_PROOF[roleType];
+    const renderedSupport = boldMetrics(support.text, support.metrics);
+    const appendToProject = proseWordCount(filled.projectProof) + proseWordCount(renderedSupport) <= 110;
+    const candidate = appendToProject
+      ? { ...filled, projectProof: `${filled.projectProof} ${renderedSupport}` }
+      : { ...filled, skillBridge: `${renderedSupport} ${filled.skillBridge ?? ""}`.trim() };
+    if (coverLetterWordCount(candidate) <= 430) {
+      filled.projectProof = candidate.projectProof;
+      filled.skillBridge = candidate.skillBridge;
+      filled.fillReasons.push(`Added ${support.source} because the direct letter was under-strength.`);
+    }
+  }
+
+  if (!filled.skillBridge) {
+    filled.skillBridge = ROLE_IMPACT_BRIDGES[roleType];
+    filled.fillReasons.push("Added a role-impact bridge to explain why the selected evidence matters.");
+  }
+
+  if (coverLetterWordCount(filled) < 300) {
+    const extension = ROLE_STRENGTH_EXTENSIONS[roleType];
+    if (coverLetterWordCount({ ...filled, skillBridge: `${filled.skillBridge ?? ""} ${extension}` }) <= 430) {
+      filled.skillBridge = `${filled.skillBridge ?? ""} ${extension}`.trim();
+      filled.fillReasons.push("Expanded the role bridge with a role-specific value statement to meet the 300-word minimum.");
+    }
+  }
+  if (coverLetterWordCount(filled) < 300) {
+    const candidate = {
+      ...filled,
+      skillBridge: `${filled.skillBridge ?? ""} ${COVER_LETTER_MINIMUM_STRENGTH_SENTENCE}`.trim(),
+    };
+    if (coverLetterWordCount(candidate) <= 430) {
+      filled.skillBridge = candidate.skillBridge;
+      filled.fillReasons.push("Added one final relevance sentence to keep the cover letter above the minimum strength floor.");
+    }
+  }
+  return filled;
+}
+
 // One "operating problem" fragment per role type, dropped into the
 // preferred opening pattern below. This is what keeps the opening from
 // being generic without needing an LLM to invent it per company -- the
 // fragment is role-specific, the company/title/referral/whyThem are
 // caller-specific, so the sentence as a whole is not identical across
 // letters even though the scaffolding is fixed.
-const MISSION_FRAGMENTS: Record<RoleType, string> = {
-  bi_data_analyst: "turning scattered operational data into dashboards and reporting that leadership can actually act on",
-  product: "translating real user and stakeholder needs into a shipped product roadmap",
-  automation_productops: "replacing manual, repeatable work with lightweight automation and cleaner workflows",
-  strategy_ops_consulting: "untangling a real operating problem into a clear, well-sequenced plan",
-  finance_ma_equity: "turning raw market and portfolio data into a defensible capital decision",
-  nonprofit_climate_program: "coordinating budget, policy, and stakeholders toward a measurable public outcome",
-  network_it_systems: "keeping complex, high-stakes systems reliable for the people who depend on them every day",
-  marketing_growth: "turning audience data into a content and growth strategy that compounds without paid spend",
+const MISSION_REASONS: Record<RoleType, string> = {
+  bi_data_analyst: "the role focuses on turning operational data into dashboards and reporting that leaders can actually use",
+  product: "the role connects user needs, product decisions, and measurable execution",
+  automation_productops: "the role sits at the intersection I enjoy most: improving workflows, reducing manual work, and building cleaner operating systems",
+  strategy_ops_consulting: "the role turns complex operating problems into clear, well-sequenced decisions",
+  finance_ma_equity: "the role turns market research, financial data, and business judgment into clearer investment decisions",
+  nonprofit_climate_program: "the role connects mission-driven work with the operational discipline needed to deliver measurable public outcomes",
+  network_it_systems: "the role focuses on keeping complex systems reliable for the people who depend on them every day",
+  marketing_growth: "the role connects audience data with a content and growth strategy that compounds without paid spend",
 };
 
 function buildMissionBridge(
@@ -831,11 +1039,11 @@ function buildMissionBridge(
 ): string {
   const e = escapeLatex;
   const company = e(input.company);
-  const jobTitle = e(input.jobTitle);
-  const fragment = MISSION_FRAGMENTS[roleType];
+  const reason = MISSION_REASONS[roleType];
   const referral = input.referralContext ? ` ${e(input.referralContext)}` : "";
   const extra = input.whyThem ? ` ${e(input.whyThem)}` : "";
-  return `What draws me to ${company} is the ${jobTitle} team's work on ${fragment}.${referral} That is the kind of work I have consistently moved toward: using data, systems, and stakeholder coordination to turn complex operations into clearer decisions and measurable improvement.${extra}`;
+  const biBridge = roleType === "bi_data_analyst" ? " What draws me to this work is the chance to make information genuinely useful to decision-makers." : "";
+  return `${company} stands out to me because ${reason}.${biBridge}${referral} That is the kind of work I have consistently moved toward: using data, systems, and stakeholder coordination to turn complex operations into clearer decisions and measurable improvement.${extra}`;
 }
 
 // Tool/industry-specific bridges -- exact sentences so a JD asking for a
@@ -862,7 +1070,7 @@ const SKILL_BRIDGES: { pattern: RegExp; text: string }[] = [
   },
 ];
 
-const ZAPIER_BRIDGE = "My Zapier automation and AI agent training, combined with Python workflow experience, gives me a strong foundation for identifying repeatable processes and building lightweight automation.";
+const ZAPIER_BRIDGE = "My Zapier automation and AI agent training, combined with Python workflow experience, gives me a strong foundation for identifying repeatable processes and replacing manual steps with lightweight automation.";
 const ADOBE_BI_BRIDGE = "My Adobe Experience Platform and Customer Journey Analytics training complements my hands-on dashboarding experience by giving me stronger context in customer data, segmentation, journey analysis, and digital reporting.";
 const ADOBE_MARKETING_BRIDGE = "My Adobe Experience Platform, Customer Journey Analytics, and Google Analytics 4 training gives me formal grounding in the segmentation and journey-analysis concepts behind the organic growth work I have run directly.";
 const NONPROFIT_BRIDGE = "My Fundraising Essentials and Grant Seeking Essentials training from NonprofitReady sharpens how I think about funding structures and grant strategy, which complements the budget and funding-allocation work I already do at UBCSUO.";
@@ -897,7 +1105,7 @@ function buildSkillBridge(jobDescription: string, roleType: RoleType, confidence
 
 function buildClosing(company: string): string {
   const e = escapeLatex;
-  return `I would welcome the chance to bring that same combination of data discipline and stakeholder coordination to ${e(company)}, and I am ready to start contributing from day one.`;
+  return `I would welcome a conversation about how I can help ${e(company)} turn evidence, stakeholder needs, and execution discipline into work the team can use immediately.`;
 }
 
 const BANNED_OPENINGS = [
@@ -918,6 +1126,10 @@ const BANNED_WEAK_LANGUAGE = [
   "i lack",
   "i do not know",
   "i have no experience",
+  "i am a fast learner",
+  "i would be a great fit",
+  "i am passionate",
+  "i hope",
 ];
 
 // Signatures of the old task/approach/impact dump this rewrite removes --
@@ -938,7 +1150,7 @@ export type CoverLetterAudit = { ok: boolean; violations: string[] };
 // retry against, so a violation means the deterministic template
 // construction has a real bug and should surface immediately rather than
 // silently ship a bad letter.
-export function auditCoverLetter(text: string, companyName?: string): CoverLetterAudit {
+export function auditCoverLetter(text: string, companyName?: string, enforceStrength = false): CoverLetterAudit {
   const lower = text.toLowerCase();
   const violations: string[] = [];
 
@@ -961,7 +1173,10 @@ export function auditCoverLetter(text: string, companyName?: string): CoverLette
   }
 
   const wordCount = text.split(/\s+/).filter(Boolean).length;
-  if (wordCount > 480) violations.push(`Body is ${wordCount} words -- likely exceeds one page`);
+  if (enforceStrength && wordCount < 300) violations.push(`Body is ${wordCount} words -- below the 300-word minimum`);
+  if (wordCount > 450) violations.push(`Body is ${wordCount} words -- exceeds the 450-word hard cap`);
+  const paragraphCount = text.split(/\n\s*\n/).filter((paragraph) => paragraph.trim()).length;
+  if (enforceStrength && (paragraphCount < 5 || paragraphCount > 6)) violations.push(`Body has ${paragraphCount} paragraphs -- expected 5 by default, 6 only for broad roles`);
   for (const paragraph of text.split(/\n\s*\n/)) {
     const paragraphWords = paragraph.split(/\s+/).filter(Boolean).length;
     if (paragraphWords > 115) violations.push(`Paragraph is ${paragraphWords} words -- split or tighten it`);
@@ -992,40 +1207,52 @@ export function generateCoverLetterLatex(
     : "";
 
   const para1 = buildMissionBridge(input, roleType);
-  const para2 = buildProfessionalProof(roleType);
-  const para3 = buildProjectProof(roleType);
-  const skillBridge = buildSkillBridge(input.jobDescription, roleType, confidence);
-  const para5 = buildClosing(input.company);
+  const directPlan = ROLE_EVIDENCE_PLAN[roleType];
+  const selectedEvidence = fillCoverLetterToStrength(roleType, input.jobDescription, {
+    opening: para1,
+    professionalProof: buildProfessionalProof(roleType),
+    projectProof: buildProjectProof(roleType),
+    skillBridge: buildSkillBridge(input.jobDescription, roleType, confidence),
+    closing: buildClosing(input.company),
+    professionalKey: directPlan.professionalKey,
+    projectKey: directPlan.projectKey,
+    fillReasons: [],
+  });
 
-  const bodyParas = [para1, para2, para3, skillBridge, para5].filter((p): p is string => Boolean(p));
+  const bodyParas = [selectedEvidence.opening, selectedEvidence.professionalProof, selectedEvidence.projectProof, selectedEvidence.skillBridge, selectedEvidence.closing]
+    .filter((paragraph): paragraph is string => Boolean(paragraph));
 
   // Audit against the *escaped* company name -- the body text it's
   // checking against is already LaTeX-escaped, so a raw name containing
   // "&"/"#"/"$" etc. would never match otherwise.
-  const audit = auditCoverLetter(bodyParas.join("\n\n"), e(input.company));
+  const audit = auditCoverLetter(bodyParas.join("\n\n"), e(input.company), true);
   if (!audit.ok) {
     throw new Error(`Cover letter failed quality audit: ${audit.violations.join("; ")}`);
   }
   const linkedinHandle = profile.linkedin.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+  const selectedLocation = selectApplicationLocation(input.jobDescription);
+  const visibleLocation = input.includeFullAddress && selectedLocation.fullAddress ? selectedLocation.fullAddress : selectedLocation.cityProvince;
 
   const latex = `\\documentclass[10.5pt,letterpaper]{article}
 \\usepackage[margin=0.68in]{geometry}
 \\usepackage[hidelinks]{hyperref}
-\\usepackage[T1]{fontenc}
-\\usepackage[english]{babel}
-\\usepackage{sourcesanspro}
+\\usepackage{fontspec}
 \\usepackage[usenames,dvipsnames]{color}
-\\renewcommand{\\familydefault}{\\sfdefault}
+\\setmainfont{Source Sans 3}
 \\pagestyle{empty}
 \\setlength{\\parindent}{0pt}
 \\setlength{\\parskip}{0.65em}
 \\color{black}
+\\sloppy
+\\emergencystretch=3em
+\\hyphenpenalty=10000
+\\exhyphenpenalty=10000
 
 \\begin{document}
 
 \\begin{flushleft}
 {\\Large \\textbf{${e(profile.name)}}}\\\\
-British Columbia \\quad $\\vert$ \\quad ${e(profile.phone)} \\quad $\\vert$ \\quad ${e(profile.email)} \\quad $\\vert$ \\quad ${e(linkedinHandle)}
+${e(visibleLocation)} \\quad $\\vert$ \\quad ${e(profile.phone)} \\quad $\\vert$ \\quad ${e(profile.email)} \\quad $\\vert$ \\quad ${e(linkedinHandle)}
 \\end{flushleft}
 
 \\vspace{8pt}

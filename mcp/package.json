@@ -8,7 +8,9 @@
     "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",
+    "check:context": "python scripts/check_context_hygiene.py",
     "check:connectors": "node scripts/check-ats-connectors.mjs",
+    "mock:docs": "npx tsx scripts/generate_mock_documents.ts",
     "smoke": "node scripts/mcp-smoke-test.mjs"
   },
   "dependencies": {

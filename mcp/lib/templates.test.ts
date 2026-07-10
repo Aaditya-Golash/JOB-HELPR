@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   generateResumeLatex,
   generateCoverLetterLatex,
+  scoreResumeStrength,
   classifyRole,
   boldMetrics,
   auditCoverLetter,
@@ -60,6 +61,23 @@ describe("generateResumeLatex", () => {
     const header = latex.slice(0, latex.indexOf("\\section{EDUCATION}"));
     expect(header).not.toContain("https://");
     expect(header).toContain("linkedin.com/in/aaditya-golash");
+    expect(header).toContain("+12508646046");
+    expect(header).toContain("aadigolash10@outlook.com");
+  });
+
+  it("uses city/province in the resume header but British Columbia for education", () => {
+    const { latex, plan } = generateResumeLatex({
+      jobTitle: "Business Analyst",
+      company: "Acme",
+      jobDescription: "This role is based in Toronto, ON.",
+    });
+    const header = latex.slice(0, latex.indexOf("\\section{EDUCATION}"));
+    expect(plan.location).toBe("Toronto, ON");
+    expect(header).toContain("Toronto, ON");
+    expect(header).not.toContain("155 Yorkville");
+    expect(latex).toContain("\\textbf{University of British Columbia} \\hfill British Columbia");
+    expect(latex).not.toContain("University of British Columbia} \\hfill Kelowna, BC");
+    expect(latex).not.toContain("University of British Columbia} \\hfill Toronto, ON");
   });
 
   it("uses the compact 0.42in margin", () => {
@@ -83,7 +101,10 @@ describe("generateResumeLatex", () => {
     expect(plan.projects.length).toBeLessThanOrEqual(3);
     for (const p of plan.projects) {
       expect(p.bullets.length).toBeLessThanOrEqual(4);
+      expect(p.selectionReason).toMatch(/Ranked \d/);
     }
+    expect(plan.excludedEvidence.length).toBeGreaterThan(0);
+    expect(plan.excludedEvidence.every((item) => item.reason.includes("3-project"))).toBe(true);
   });
 
   it("never includes raw project-dump phrasing", () => {
@@ -136,7 +157,15 @@ describe("generateResumeLatex", () => {
     expect(latex).toContain("Microsoft 365 migration");
     expect(latex).toContain("$1.9M operating budget");
     expect(plan.experience).toHaveLength(2);
-    expect((latex.match(/\\resumeItem\{/g) ?? []).length).toBeGreaterThanOrEqual(12);
+    const bulletCount = (latex.match(/\\resumeItem\{/g) ?? []).length;
+    expect(bulletCount).toBeGreaterThanOrEqual(15);
+    expect(bulletCount).toBeLessThanOrEqual(18);
+    expect(plan.experience).toHaveLength(2);
+    expect(plan.experience.find((role) => role.title.includes("Director"))?.bullets.length).toBeGreaterThanOrEqual(2);
+    expect(plan.experience.find((role) => role.title.includes("Systems Analyst"))?.bullets.length).toBeGreaterThanOrEqual(2);
+    expect(plan.fillReasons.length).toBeGreaterThan(0);
+    expect(plan.strengthScore).toBeGreaterThanOrEqual(plan.baseStrengthThreshold);
+    expect(scoreResumeStrength(plan)).toBe(plan.strengthScore);
     expect(latex).not.toContain("\\texttimes");
   });
 
@@ -161,6 +190,12 @@ describe("generateResumeLatex", () => {
     expect(plan.roleType).toBe("product");
     expect(latex).toContain("TA Allocation");
     expect(latex).toContain("backlog of 36+");
+    const bulletCount = (latex.match(/\\resumeItem\{/g) ?? []).length;
+    expect(bulletCount).toBeGreaterThanOrEqual(15);
+    expect(bulletCount).toBeLessThanOrEqual(18);
+    expect(plan.experience.find((role) => role.title.includes("Director"))?.bullets.length).toBeGreaterThanOrEqual(2);
+    expect(plan.experience.find((role) => role.title.includes("Systems Analyst"))?.bullets.length).toBeGreaterThanOrEqual(2);
+    expect(plan.fillReasons.some((reason) => reason.includes("fallback proof"))).toBe(true);
   });
 
   it("classifies a marketing JD and can select Social Media / VenueWorks evidence", () => {
@@ -229,13 +264,13 @@ describe("boldMetrics", () => {
   it("wraps only the given substrings in \\textbf{}, leaving the rest untouched", () => {
     const text = "We processed 250+ applications and shipped 36+ features this term.";
     const result = boldMetrics(text, ["250+ applications"]);
-    expect(result).toBe("We processed \\textbf{250+ applications} and shipped 36+ features this term.");
+    expect(result).toBe("We processed\\textbf{\\space 250+ applications} and shipped 36+ features this term.");
   });
 
   it("bolds multiple substrings in the order given", () => {
     const text = "A and B and C.";
     const result = boldMetrics(text, ["A", "C"]);
-    expect(result).toBe("\\textbf{A} and B and \\textbf{C}.");
+    expect(result).toBe("\\textbf{A} and B and\\textbf{\\space C}.");
   });
 
   it("silently skips a metric that isn't actually present in the text", () => {
@@ -293,6 +328,17 @@ describe("auditCoverLetter", () => {
 
 describe("generateCoverLetterLatex", () => {
   const coverInput = { ...baseInput, whyThem: "Acme's data culture matches my background." };
+  const bodyBetweenGreetingAndClose = (latex: string) => latex.slice(latex.indexOf("Dear "), latex.indexOf("Sincerely,"));
+  const plainBody = (latex: string) =>
+    bodyBetweenGreetingAndClose(latex)
+      .replace(/\\textbf\{([^}]*)\}/g, "$1")
+      .replace(/\\hspace\{[^}]*\}/g, " ")
+      .replace(/\\[%$&#_]/g, "x")
+      .replace(/\\[A-Za-z]+(?:\{[^}]*\})?/g, " ")
+      .replace(/[{}]/g, " ");
+  const bodyWordCount = (latex: string) => plainBody(latex).split(/\s+/).filter(Boolean).length;
+  const bodyBoldCount = (latex: string) => (bodyBetweenGreetingAndClose(latex).match(/\\textbf\{/g) ?? []).length;
+  const concreteMetricCount = (latex: string) => (plainBody(latex).match(/\b(?:\d[\d,.]*(?:\+|%|M|K)?|\$\d[\d,.]*M?\+?)/g) ?? []).length;
 
   it("produces a compilable-looking LaTeX document", () => {
     const latex = generateCoverLetterLatex(coverInput);
@@ -302,9 +348,14 @@ describe("generateCoverLetterLatex", () => {
     expect(latex).toContain("Sincerely");
   });
 
-  it("uses the sourcesanspro package", () => {
+  it("uses the ATS-safe LuaLaTeX Arial setup with hyphenation disabled", () => {
     const latex = generateCoverLetterLatex(coverInput);
-    expect(latex).toContain("\\usepackage{sourcesanspro}");
+    expect(latex).toContain("\\usepackage{fontspec}");
+    expect(latex).toContain("\\setmainfont{Source Sans 3}");
+    expect(latex).toContain("\\hyphenpenalty=10000");
+    expect(latex).toContain("\\exhyphenpenalty=10000");
+    expect(latex).not.toContain("fontenc");
+    expect(latex).not.toContain("sourcesanspro");
     expect(latex).toContain("10.5pt,letterpaper");
     expect(latex).not.toContain("fontawesome");
   });
@@ -328,12 +379,140 @@ describe("generateCoverLetterLatex", () => {
 
   it("includes between 2 and 4 bolded metric highlights", () => {
     const latex = generateCoverLetterLatex(coverInput);
-    const boldCount = (latex.match(/\\textbf\{/g) ?? []).length;
-    // resume/header also use \textbf{} (name, Re: line) -- isolate the body
-    // paragraphs the same way generateCoverLetterLatex's own audit does by
-    // just checking the total stays in a sane range for a short letter.
+    const boldCount = bodyBoldCount(latex);
     expect(boldCount).toBeGreaterThanOrEqual(2);
-    expect(boldCount).toBeLessThanOrEqual(6); // + name/Re-line bolds
+    expect(boldCount).toBeLessThanOrEqual(4);
+  });
+
+  it("keeps Product Ops cover letters at strength without overfilling", () => {
+    const latex = generateCoverLetterLatex({
+      ...coverInput,
+      jobTitle: "Product Operations Analyst",
+      company: "FlowOps",
+      jobDescription: "Own product operations, workflow automation, Zapier, Python, process improvement, stakeholder coordination, and operational reporting.",
+    });
+    expect(bodyWordCount(latex)).toBeGreaterThanOrEqual(300);
+    expect(bodyWordCount(latex)).toBeLessThanOrEqual(430);
+    expect(latex).toContain("Calmora");
+    expect(latex).toContain("TA Allocation");
+    expect(latex).toContain("250+ applications per term");
+    expect(latex).toContain("70\\%");
+    expect(concreteMetricCount(latex)).toBeGreaterThanOrEqual(3);
+    expect(bodyBoldCount(latex)).toBeGreaterThanOrEqual(2);
+    expect(bodyBoldCount(latex)).toBeLessThanOrEqual(4);
+  });
+
+  it("keeps BI cover letters at or above the preferred minimum", () => {
+    const latex = generateCoverLetterLatex({
+      ...coverInput,
+      jobTitle: "Business Intelligence Analyst",
+      company: "Northwind Telecom",
+      jobDescription: "Build Power BI dashboards, write SQL, maintain data quality, define KPIs, and deliver stakeholder reporting across telecom operations.",
+    });
+    expect(bodyWordCount(latex)).toBeGreaterThanOrEqual(320);
+    expect(bodyWordCount(latex)).toBeLessThanOrEqual(430);
+    expect(latex).toContain("board-level dashboards");
+    expect(latex).not.toContain("dashboards for technology");
+    expect(latex).toContain("TA Allocation");
+    expect(bodyBoldCount(latex)).toBeGreaterThanOrEqual(2);
+    expect(bodyBoldCount(latex)).toBeLessThanOrEqual(4);
+  });
+
+  it("uses product analyst proof stack with user behavior support", () => {
+    const latex = generateCoverLetterLatex({
+      ...coverInput,
+      jobTitle: "Product Analyst",
+      company: "Wing Labs",
+      jobDescription: "Own product requirements, backlog analysis, user research, stakeholder reporting, SQL, and cross-functional product delivery.",
+    });
+    expect(bodyWordCount(latex)).toBeGreaterThanOrEqual(320);
+    expect(latex).toContain("TA Allocation");
+    expect(latex).toContain("Eye-Tracking");
+  });
+
+  it("uses finance proof stack with portfolio and market sizing support", () => {
+    const latex = generateCoverLetterLatex({
+      ...coverInput,
+      jobTitle: "Finance M&A Analyst",
+      company: "Northbridge Capital",
+      jobDescription: "Finance and M&A analyst role requiring financial analysis, Excel modeling, valuation, portfolio analysis, market research, and executive reporting.",
+    });
+    expect(bodyWordCount(latex)).toBeGreaterThanOrEqual(320);
+    expect(latex).toContain("TSX equity data");
+    expect(latex).toContain("VenueWorks");
+    expect(latex).toContain("\\$5M+");
+  });
+
+  it("avoids filler phrases and keeps a role/company-specific opening and close", () => {
+    const latex = generateCoverLetterLatex({
+      ...coverInput,
+      jobTitle: "Product Operations Analyst",
+      company: "FlowOps",
+      jobDescription: "Own workflow automation, process automation, and product operations.",
+    });
+    const lower = latex.toLowerCase();
+    for (const phrase of ["i am a fast learner", "i would be a great fit", "i am passionate", "i hope"]) {
+      expect(lower).not.toContain(phrase);
+    }
+    expect(latex).toContain("FlowOps stands out to me");
+    expect(latex).toContain("I would welcome a conversation about how I can help FlowOps");
+  });
+
+  it("keeps the cover letter header to selected city/contact only", () => {
+    const latex = generateCoverLetterLatex({
+      ...coverInput,
+      jobTitle: "Business Intelligence Analyst",
+      company: "Northwind Telecom",
+      jobDescription: "Build Power BI dashboards in Toronto, ON.",
+    });
+    const header = latex.slice(0, latex.indexOf("\\textbf{Re:"));
+    expect(header).toContain("Toronto, ON");
+    expect(header).not.toContain("British Columbia");
+    expect(header).toContain("+12508646046");
+    expect(header).toContain("aadigolash10@outlook.com");
+    expect(header).toContain("linkedin.com/in/aaditya-golash");
+    expect(header).not.toContain("155 Yorkville");
+    expect(latex).not.toContain("UBC Okanagan");
+  });
+
+  it("uses selected city/province in cover-letter headers for all priority regions", () => {
+    const cases = [
+      ["Vancouver, BC", "Vancouver, BC"],
+      ["Calgary, AB", "Calgary, AB"],
+      ["Sherwood Park, AB", "Edmonton, AB"],
+      ["Ontario, Quebec, or Nova Scotia", "Toronto, ON"],
+      ["Kelowna, BC", "Kelowna, BC"],
+      ["Toronto, Calgary, Vancouver", "Toronto, ON"],
+      ["Calgary or Vancouver", "Calgary, AB"],
+      ["Edmonton or Vancouver", "Edmonton, AB"],
+    ];
+    for (const [locationText, expected] of cases) {
+      const latex = generateCoverLetterLatex({
+        ...coverInput,
+        jobTitle: "Business Intelligence Analyst",
+        company: "Northwind Telecom",
+        jobDescription: `Build Power BI dashboards. Location: ${locationText}.`,
+      });
+      const header = latex.slice(0, latex.indexOf("\\textbf{Re:"));
+      expect(header).toContain(expected);
+      expect(header).not.toContain("275 N Kootenay");
+      expect(header).not.toContain("204 Coville");
+      expect(header).not.toContain("396 Meadowview");
+      expect(header).not.toContain("155 Yorkville");
+      expect(header).not.toContain("881 Academy");
+    }
+  });
+
+  it("can include full address in document header only when explicitly requested", () => {
+    const latex = generateCoverLetterLatex({
+      ...coverInput,
+      jobTitle: "Business Intelligence Analyst",
+      company: "Northwind Telecom",
+      jobDescription: "Build Power BI dashboards in Toronto, ON.",
+      includeFullAddress: true,
+    });
+    const header = latex.slice(0, latex.indexOf("\\textbf{Re:"));
+    expect(header).toContain("155 Yorkville Ave, Toronto, ON M5R 0B4");
   });
 
   it("bridges a Power BI requirement instead of admitting the gap", () => {
@@ -352,6 +531,18 @@ describe("generateCoverLetterLatex", () => {
     for (const paragraph of body.split(/\n\s*\n/).slice(1)) {
       expect(paragraph.split(/\s+/).filter(Boolean).length).toBeLessThanOrEqual(115);
     }
+  });
+
+  it("uses a short company-first mission bridge rather than concatenating title and fragment", () => {
+    const latex = generateCoverLetterLatex({
+      ...coverInput,
+      jobTitle: "Product Operations Analyst",
+      company: "FlowOps",
+      jobDescription: "Own workflow automation, process automation, and product operations.",
+    });
+    expect(latex).toContain("FlowOps stands out to me because the role sits at the intersection I enjoy most");
+    expect(latex).not.toContain("What draws me to FlowOps is the Product Operations Analyst team's work on");
+    expect(latex).toContain("replacing manual steps");
   });
 
   it("uses nonprofit/funding/stakeholder evidence for a climate/nonprofit JD", () => {

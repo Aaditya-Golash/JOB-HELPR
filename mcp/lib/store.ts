@@ -25,6 +25,15 @@ export type ApplicationRecord = {
   createdAt: string;
 };
 
+export type ApplicationListFilter = {
+  status?: ApplicationRecord["status"];
+  company?: string;
+  role?: string;
+  since?: string;
+  limit?: number;
+  offset?: number;
+};
+
 const STORE_KEY = "job-pipeline/applications.json";
 
 // Serializes the full read-merge-write transaction inside one Node process.
@@ -91,8 +100,27 @@ export async function saveApplication(record: Omit<ApplicationRecord, "id" | "cr
   });
 }
 
-export async function listApplications(filter?: Partial<Pick<ApplicationRecord, "status">>) {
+function includesIgnoreCase(value: string | undefined, query: string | undefined): boolean {
+  if (!query) return true;
+  return Boolean(value?.toLowerCase().includes(query.toLowerCase()));
+}
+
+export async function listApplications(filter: ApplicationListFilter = {}) {
   const all = await readAll();
-  if (filter?.status) return all.filter((a) => a.status === filter.status);
-  return all;
+  const sinceDate = filter.since ? new Date(filter.since) : null;
+  const filtered = all.filter((a) => {
+    if (filter.status && a.status !== filter.status) return false;
+    if (!includesIgnoreCase(a.company, filter.company)) return false;
+    if (!includesIgnoreCase(a.jobTitle, filter.role)) return false;
+    if (sinceDate && !Number.isNaN(sinceDate.getTime()) && new Date(a.createdAt) < sinceDate) return false;
+    return true;
+  });
+  const offset = Math.max(0, filter.offset ?? 0);
+  const limit = Math.min(Math.max(1, filter.limit ?? 25), 100);
+  return {
+    count: filtered.length,
+    returned: Math.min(limit, Math.max(0, filtered.length - offset)),
+    nextOffset: offset + limit < filtered.length ? offset + limit : null,
+    applications: filtered.slice(offset, offset + limit),
+  };
 }
