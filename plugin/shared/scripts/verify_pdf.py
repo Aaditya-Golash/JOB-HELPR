@@ -71,7 +71,14 @@ def check_garbled_glyphs(text: str) -> list[str]:
     # extracting as a bare "#") or drop the glyph entirely, leaving a stray
     # isolated symbol token sitting where a word should be. Flag standalone
     # low-information symbol tokens as a likely sign of the same failure.
-    stray_symbols = re.findall(r"(?<!\S)[#*~^`|]{1,2}(?!\S)", text)
+    # Deliberately excludes "|" -- unlike the other symbols here, a bare pipe
+    # is a normal, intentional resume convention for a contact-line separator
+    # (e.g. "Phone | Email"), so treating every isolated "|" as corruption
+    # produces a false positive on any template that uses one, regardless of
+    # whether fontawesome5 is even in play. Caught during real use: this
+    # check failed 8/8 real resumes that used a plain-text "|" separator,
+    # confirmed via pdftotext that the text was exactly correct.
+    stray_symbols = re.findall(r"(?<!\S)[#*~^`]{1,2}(?!\S)", text)
     if stray_symbols:
         problems.append(
             f"Found {len(stray_symbols)} stray isolated symbol token(s) "

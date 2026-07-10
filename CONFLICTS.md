@@ -154,3 +154,24 @@ standard):
    accurate and still worth keeping in `job-search/SKILL.md` — the filename
    attribution was the part that couldn't be verified, not the lesson
    itself.
+
+## 10. False positive in `verify_pdf.py`'s stray-symbol check
+
+**Bug found during real use, not a port-time review**: running
+`tailor-resume` against 8 real job postings, `verify_pdf.py` reported FAIL
+on all 16 compiled PDFs (8 resumes + 8 cover letters) — "stray isolated
+symbol token(s) (|)". The account's actual resume template uses a bare `|`
+as a plain-text separator in the contact line ("British Columbia |
++1250... | email | linkedin"), which is a completely ordinary resume
+convention with zero relation to the fontawesome5-icon-corruption failure
+mode this check exists to catch. Confirmed via `pdftotext` that the
+extracted text was exactly correct in all 16 PDFs before concluding this
+was a false positive rather than a real compile problem.
+
+**Fix**: dropped `|` from the stray-symbol character class in
+`check_garbled_glyphs()` — kept the other symbols (`#`, `*`, `~`, `^`,
+backtick), which are rarer and more likely to indicate real corruption, but
+a bare pipe on its own isn't a reliable corruption signal, since it's
+exactly what an intentional separator looks like too. The PUA-codepoint
+check (the stronger signal) is untouched. Re-verified all 16 PDFs after the
+fix: all PASS.
