@@ -27,36 +27,54 @@ export const profile = {
     details: "Dean's List, Graduating with Distinction",
     graduation: "May 2026",
     coursework: "Artificial Intelligence, Network Science, Analysis of Algorithms, Databases, Investments, Finance",
-    professionalDevelopment: "Adobe Experience Platform and Customer Journey Analytics Foundations, Google Analytics 4, Bloomberg Market Concepts",
+    professionalDevelopment: "Adobe Experience Platform and Customer Journey Analytics Foundations, Google Analytics 4, Bloomberg Market Concepts, Certified Workflow Automation Professional (Zapier Academy)",
   },
 
   certifications: [
     "Bloomberg Market Concepts",
     "Google Analytics 4",
     "Adobe Experience Platform Foundations",
+    "Introduction to Adobe Real-Time CDP",
+    "Foundational Concepts of Adobe Customer Journey Analytics",
+    "Analysis Workspace in Adobe Customer Journey Analytics",
+    "Zapier Jumpstart",
+    "Zapier: Building Basic Zaps",
+    "Zapier: Building Intermediate Zaps",
+    "Zapier: Building AI Agents",
+    "NonprofitReady: Fundraising Essentials",
+    "NonprofitReady: Grant Seeking Essentials",
   ],
 
+  // Titles/orgs/dates/location calibrated against Aaditya_Resume_2026.pdf
+  // (the account owner's own real, current resume -- authoritative for
+  // these identifying facts). Bullets keep the fuller detail from the
+  // account owner's direct work-history interview, including the
+  // quantified KB-rebuild metric, which that PDF's own bullets don't
+  // happen to include but which is real, verified detail -- see
+  // CONFLICTS.md for the full reconciliation note.
   experience: [
     {
-      title: "Director",
-      org: "UBC Students' Union (UBCSUO)",
-      dates: "May 2025 – April 2026",
+      title: "Director-at-Large",
+      org: "Student Union of UBC Okanagan",
+      location: "Kelowna, BC",
+      dates: "May 2025 – Apr 2026",
       bullets: [
-        "Manage analytics reporting and digital strategy for a 1.9 million dollar operating budget serving 11,000 plus students across 150 plus campus stakeholders",
-        "Revised the Data Governance Policy SC14, defining data ownership, quality standards, and compliance requirements for institutional data assets",
-        "Built board level dashboards tracking key performance metrics across technology and operations, giving the board direct visibility into program outcomes",
+        "Elected to represent 12,000+ students, co-managing a $1.9M operating budget and auditing structural allocations for information system investments",
+        "Served on the UBC Policy Development Committee, amending Information Systems (SC14) and Wireless Network (SC11) frameworks to integrate digital governance and risk boundaries",
+        "Chaired multi-functional committees evaluating data collection practices, deployment strategies, and institutional data access rules",
+        "Built board-level dashboards tracking key performance metrics across technology and operations, giving the board direct visibility into program outcomes",
       ],
     },
     {
-      title: "IT Analyst (Co-op)",
-      org: "University of British Columbia",
+      title: "Student Systems Analyst (Co-op)",
+      org: "IT Services UBC",
+      location: "Kelowna, BC",
       dates: "May 2024 – Apr 2025",
       bullets: [
-        "Resolved 110 plus daily ServiceNow incidents under SLA requirements, supporting enterprise IT systems for 12,000 plus students and staff",
-        "Ran incident trend analysis to identify the top recurring failure types across campus systems, then partnered with UBC Vancouver engineering to redesign affected workflows and reduce repeat incident rates",
-        "Rebuilt knowledge base KB0019190, rewriting content in plain student-facing language instead of IT jargon and removing outdated material, cutting recurring related incidents by 70 percent",
-        "Contributed to a Microsoft 365 migration and AI chatbot rollout, supporting user testing and drafting end user documentation for both initiatives",
-        "Produced weekly operational reports from ServiceNow data, surfacing trends in ticket volume, resolution times, and system failures for IT leadership",
+        "Engineered end-to-end user-centric support pathways via ServiceNow, analyzing technical workflows and resolving 110+ structural infrastructure inquiries daily",
+        "Refactored the student technical knowledge repository, rewriting content in plain student-facing language instead of IT jargon, cutting recurring related incidents by 70%",
+        "Collaborated with central enterprise teams to scale automated bot integrations, identifying core processing bottlenecks and reducing baseline system ticket iteration times",
+        "Contributed to a Microsoft 365 migration and AI chatbot rollout, supporting user testing and drafting end-user documentation for both initiatives",
       ],
     },
   ],
@@ -127,18 +145,25 @@ export const profile = {
     },
   ],
 
+  // Calibrated against Aaditya_Resume_2026.pdf's own TECHNICAL SKILLS &
+  // CORE COMPETENCIES block (Languages/Frameworks, Systems & Architecture,
+  // Data & Business Analytics), extended (not replaced) with a few
+  // genuinely-used skills from specific projects that PDF's curated list
+  // doesn't happen to list (PyTorch/Computer Vision from Jersey Number
+  // Recognition; GA4/Adobe Experience Platform from certifications).
   skillCategories: [
-    { label: "Languages", items: ["Python", "SQL", "JavaScript/TypeScript", "C/C++"] },
-    { label: "Backend and Systems", items: ["Flask", "REST APIs", "Docker", "CI/CD Pipelines", "Git", "Linux"] },
-    { label: "Data and Analytics", items: ["ETL/ELT Pipelines", "MySQL", "MongoDB", "Tableau", "GA4", "Adobe Experience Platform"] },
+    { label: "Languages/Frameworks", items: ["Python", "SQL", "C/C++", "R", "JavaScript", "TypeScript", "HTML/CSS", "SQLAlchemy", "Flask", "JSON"] },
+    { label: "Systems & Architecture", items: ["REST APIs", "ServiceNow", "Docker", "Firebase", "Vercel", "Android Studio", "Stripe CLI", "Git"] },
+    { label: "Data & Business Analytics", items: ["Tableau", "Requirements Gathering", "SDLC", "SLA Management", "Cost-Benefit Analysis", "GA4", "Adobe Experience Platform"] },
     { label: "Machine Learning", items: ["PyTorch", "Computer Vision"] },
-    { label: "Product and Delivery", items: ["Excel", "PowerPoint", "Agile/Scrum", "ServiceNow ITSM", "Product Requirements", "Stakeholder Reporting"] },
   ],
 
   // Flattened list, used only where a simple skill list is needed.
   skills: [
-    "Python", "SQL", "JavaScript", "TypeScript", "C", "C++", "Flask", "Docker",
-    "MySQL", "MongoDB", "Tableau", "Git", "PyTorch", "Excel", "Agile/Scrum", "ServiceNow ITSM",
+    "Python", "SQL", "C", "C++", "R", "JavaScript", "TypeScript", "HTML/CSS",
+    "SQLAlchemy", "Flask", "JSON", "REST APIs", "ServiceNow", "Docker",
+    "Firebase", "Vercel", "Android Studio", "Stripe CLI", "Git", "Tableau",
+    "PyTorch",
   ],
 
   // Target-role keywords used to bias project selection and JD matching.

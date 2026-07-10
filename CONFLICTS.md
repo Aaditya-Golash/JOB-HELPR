@@ -175,3 +175,43 @@ a bare pipe on its own isn't a reliable corruption signal, since it's
 exactly what an intentional separator looks like too. The PUA-codepoint
 check (the stronger signal) is untouched. Re-verified all 16 PDFs after the
 fix: all PASS.
+
+## 11. `profile.ts`'s experience titles/orgs vs. the account owner's real resume PDF
+
+**Conflict**: `mcp/lib/profile.ts`'s `experience` entries were originally
+written from the account owner's own verbal work-history interview
+(session-earlier `setup` skill run), which used the titles "Director" /
+"UBC Students' Union (UBCSUO)" and "IT Analyst (Co-op)" / "University of
+British Columbia". When the account owner later uploaded
+`Aaditya_Resume_2026.pdf` (his real, current resume) as the base format
+reference for the resume-generator rewrite, that PDF uses different,
+presumably-more-current titles: "Director-at-Large" / "Student Union of
+UBC Okanagan" and "Student Systems Analyst (Co-op)" / "IT Services UBC" --
+plus a per-role work location ("Kelowna, BC") the interview-derived
+version didn't capture at all.
+
+**Resolution**: treated the PDF as authoritative for identifying facts
+(title, org, location) since it's the account owner's own real, current
+document, and updated `profile.ts` to match. Bullet *content* was kept
+from the interview version rather than replaced with the PDF's own
+(shorter, less specific) bullets, because the interview surfaced one piece
+of real, verified, quantified detail the PDF's bullets don't happen to
+include -- the KB-rewrite work specifically cutting recurring incidents by
+70%, which the account owner described directly and which `f155415`
+already committed. Titles/orgs/locations were a simple, low-risk field
+update; bullet content was a judgment call to preserve verified specificity
+rather than silently downgrade to vaguer phrasing. Flagged to the account
+owner directly in the same turn this was done, in case the merge call was
+wrong.
+
+**Also updated from the same PDF**: `skillCategories` was extended (not
+replaced) with the PDF's fuller, real skill list -- R, HTML/CSS,
+SQLAlchemy, JSON, Firebase, Vercel, Android Studio, Stripe CLI -- and
+`education.professionalDevelopment` gained the Zapier Academy credential
+the PDF lists that the interview-derived version didn't mention.
+`education.graduation` ("May 2026") and `education.details` ("Dean's List,
+Graduating with Distinction") were deliberately left unchanged even though
+the PDF's education line reads differently ("Graduated Dean's List", no
+visible date) -- whether the account owner has already graduated is a
+substantive factual question this session has no basis to guess at
+silently, unlike a skills-list addition.

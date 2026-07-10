@@ -9,23 +9,30 @@ const handler = createMcpHandler(
   (server) => {
     server.tool(
       "generate_resume",
-      "Generates a one page LaTeX resume tailored to a specific job description, drawing on 3-5 of the strongest matching projects from the fixed project pool.",
+      "Deprecated for now unless explicitly requested -- cover-letter generation is the priority workflow. Generates a one-page, role-specific LaTeX resume using Aaditya_Resume_2026(1).pdf as the base format: compact header, all-caps sections, skills near top, selected projects before experience, content budget, role classification, concise bullets, and one-page constraints. Does not dump the full profile.",
       {
         jobTitle: z.string(),
         company: z.string(),
         jobDescription: z.string(),
-        projectCount: z.number().min(3).max(5).optional(),
+        projectCount: z.number().min(1).max(3).optional().describe("Max projects to include (hard cap 3, matching the one-page budget)."),
       },
       async ({ jobTitle, company, jobDescription, projectCount }) => {
-        const { latex, projectsUsed } = generateResumeLatex({
+        const { latex, projectsUsed, plan } = generateResumeLatex({
           jobTitle,
           company,
           jobDescription,
           projectCount,
         });
+        const notes = [
+          `Role classified as: ${plan.roleType} (confidence ${plan.confidence})`,
+          `Location: ${plan.location}`,
+          `Section order: ${plan.experienceFirst ? "Education, Skills, Experience, Projects" : "Education, Skills, Projects, Experience"}`,
+          `Projects used: ${projectsUsed.join(", ")}`,
+          `Total bullets: ${plan.totalBullets}`,
+        ].join("\n");
         return {
           content: [
-            { type: "text", text: `Projects used: ${projectsUsed.join(", ")}\n\n${latex}` },
+            { type: "text", text: `${notes}\n\n${latex}` },
           ],
         };
       },
@@ -33,12 +40,12 @@ const handler = createMcpHandler(
 
     server.tool(
       "generate_cover_letter",
-      "Generates a one page LaTeX cover letter tailored to a specific job description, matching Aaditya's real format: contact line, optional recipient block, Re: line, greeting, opening paragraph, 2-3 body paragraphs tying JD requirements to real project experience, short closing.",
+      "Generates a polished one-page LaTeX cover letter tailored to a specific job description. Does not depend on a tailored resume. Uses Aaditya's mission bridge, evidence bank, metric highlighting, and skill bridge style. Avoids project-dump paragraphs and generic openings.",
       {
         jobTitle: z.string(),
         company: z.string(),
         jobDescription: z.string(),
-        whyThem: z.string().describe("One to two sentences on why this company and role specifically"),
+        whyThem: z.string().optional().describe("Optional: one to two extra sentences of company-specific color to fold into the opening. The mission bridge already generates a non-generic opening without this."),
         hiringManager: z.string().optional(),
         recipientLines: z
           .array(z.string())
