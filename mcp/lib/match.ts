@@ -22,10 +22,10 @@ export function escapeLatex(input: string): string {
   return input.replace(/[\\&%$#_{}~^]/g, (ch) => LATEX_ESCAPES[ch]);
 }
 
-// Picks the 3-5 best matching projects for a job description by simple
+// Picks the 1-3 best matching projects for a job description by simple
 // keyword overlap against project tags/name/task text. Deterministic and
 // explainable rather than a black box, so it is easy to sanity check.
-export function selectProjects(jobDescription: string, count = 4) {
+export function selectProjects(jobDescription: string, count = 3) {
   const jd = jobDescription.toLowerCase();
 
   const scored = profile.projects.map((p) => {
@@ -42,6 +42,6 @@ export function selectProjects(jobDescription: string, count = 4) {
   });
 
   scored.sort((a, b) => b.score - a.score);
-  const clamped = Math.min(Math.max(count, 3), 5);
+  const clamped = Math.min(Math.max(count, 1), 3);
   return scored.slice(0, clamped).map((s) => s.project);
 }

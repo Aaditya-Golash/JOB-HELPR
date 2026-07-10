@@ -45,7 +45,8 @@ posting:
 1. Match it against the closest saved target role.
 2. Note which of the profile's projects/experience bullets are the strongest
    proof points for *that specific* posting — this is what later drives which
-   3-5 projects `generate_resume` should lean on.
+   1-3 projects `generate_resume` should lean on (default 3); the one-page
+   resume constraint takes priority.
 3. If a posting doesn't cleanly match any saved target role, say so rather
    than forcing a fit — that's a signal the role list in setup may need
    revisiting, not a scoring failure.

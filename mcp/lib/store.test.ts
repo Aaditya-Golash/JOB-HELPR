@@ -102,4 +102,19 @@ describe("store", () => {
     const all = await listApplications();
     expect(all).toHaveLength(5);
   });
+
+  it("serializes concurrent saves so neither application is dropped", async () => {
+    await Promise.all([
+      saveApplication({ company: "Concurrent A", jobTitle: "Analyst", status: "shortlisted" }),
+      saveApplication({ company: "Concurrent B", jobTitle: "Analyst", status: "shortlisted" }),
+    ]);
+    const all = await listApplications();
+    expect(all.map((entry) => entry.company).sort()).toEqual(["Concurrent A", "Concurrent B"]);
+  });
+
+  it("fails clearly instead of overwriting corrupted tracker data", async () => {
+    fakeBlob = "{not valid json";
+    await expect(saveApplication({ company: "Safe", jobTitle: "Role", status: "shortlisted" })).rejects.toThrow();
+    expect(fakeBlob).toBe("{not valid json");
+  });
 });

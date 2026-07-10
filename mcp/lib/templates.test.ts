@@ -65,6 +65,11 @@ describe("generateResumeLatex", () => {
   it("uses the compact 0.42in margin", () => {
     const { latex } = generateResumeLatex(baseInput);
     expect(latex).toContain("margin=0.42in");
+    expect(latex).toContain("10pt,letterpaper");
+    expect(latex).toContain("\\usepackage{sourcesanspro}");
+    expect(latex).not.toContain("a4paper");
+    expect(latex).not.toContain("13pt");
+    expect(latex).not.toContain("fontawesome");
   });
 
   it("caps total bullets at 18 by default", () => {
@@ -122,6 +127,17 @@ describe("generateResumeLatex", () => {
     expect(plan.roleType).toBe("finance_ma_equity");
     expect(latex).toContain("TSX equity data");
     expect(latex).toContain("covariance matrix");
+    expect(latex).toContain("Excel");
+    expect(latex).toContain("Financial Analysis");
+    expect(latex).toContain("Portfolio Modeling");
+    expect(latex).toContain("\\$5M+");
+    expect(latex).toContain("300+");
+    expect(latex).toContain("\\$1,500");
+    expect(latex).toContain("Microsoft 365 migration");
+    expect(latex).toContain("$1.9M operating budget");
+    expect(plan.experience).toHaveLength(2);
+    expect((latex.match(/\\resumeItem\{/g) ?? []).length).toBeGreaterThanOrEqual(12);
+    expect(latex).not.toContain("\\texttimes");
   });
 
   it("classifies a BI/data JD and selects UBC IT + a data project", () => {
@@ -133,6 +149,7 @@ describe("generateResumeLatex", () => {
     expect(plan.roleType).toBe("bi_data_analyst");
     expect(latex).toContain("ServiceNow");
     expect(latex.includes("TA Allocation") || latex.includes("Eye-Tracking")).toBe(true);
+    expect(latex).toContain("board-level dashboards");
   });
 
   it("classifies a product JD and selects TA Allocation", () => {
@@ -143,6 +160,7 @@ describe("generateResumeLatex", () => {
     });
     expect(plan.roleType).toBe("product");
     expect(latex).toContain("TA Allocation");
+    expect(latex).toContain("backlog of 36+");
   });
 
   it("classifies a marketing JD and can select Social Media / VenueWorks evidence", () => {
@@ -287,6 +305,8 @@ describe("generateCoverLetterLatex", () => {
   it("uses the sourcesanspro package", () => {
     const latex = generateCoverLetterLatex(coverInput);
     expect(latex).toContain("\\usepackage{sourcesanspro}");
+    expect(latex).toContain("10.5pt,letterpaper");
+    expect(latex).not.toContain("fontawesome");
   });
 
   it("does not require whyThem", () => {
@@ -325,6 +345,13 @@ describe("generateCoverLetterLatex", () => {
     expect(latex).toContain("transfer directly to Power BI");
     expect(latex.toLowerCase()).not.toContain("i do not know power bi");
     expect(latex.toLowerCase()).not.toContain("i lack");
+    expect(latex).toContain("linkedin.com/in/aaditya-golash");
+    expect(latex).not.toContain("https://www.linkedin.com");
+    const body = latex.slice(latex.indexOf("Dear Hiring Manager,"), latex.indexOf("Sincerely,"));
+    expect(body.split(/\n\s*\n/).filter(Boolean)).toHaveLength(6); // greeting + five focused paragraphs
+    for (const paragraph of body.split(/\n\s*\n/).slice(1)) {
+      expect(paragraph.split(/\s+/).filter(Boolean).length).toBeLessThanOrEqual(115);
+    }
   });
 
   it("uses nonprofit/funding/stakeholder evidence for a climate/nonprofit JD", () => {

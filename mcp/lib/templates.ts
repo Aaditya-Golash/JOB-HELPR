@@ -93,13 +93,13 @@ type ResumeProjectKey = "taAllocation" | "tsxPortfolio" | "eyeTracking" | "venue
 // the account owner's own stated facts (see CONFLICTS.md).
 const RESUME_PROJECTS: Record<ResumeProjectKey, { name: string; role: string; bullets: string[] }> = {
   taAllocation: {
-    name: "TA Allocation \\& Management System",
+    name: "TA Allocation & Management System",
     role: "Backend Lead, Product Delivery",
     bullets: [
       "Delivered a full-stack allocation platform (Flask, MySQL) replacing a manual process, handling 250+ TA applications per term",
       "Defined product requirements and maintained a backlog of 36+ features covering scheduling, conflict resolution, and role-based access",
-      "Ran sprint planning with a 6-member Agile team, shipping through a Docker CI/CD pipeline with 100\\% test coverage",
-      "Cut TA assignment processing time by 70\\%, reducing coordinator workload from multiple days to a few hours per term",
+      "Ran sprint planning with a 6-member Agile team, shipping through a Docker CI/CD pipeline with 100% test coverage",
+      "Cut TA assignment processing time by 70%, reducing coordinator workload from multiple days to a few hours per term",
     ],
   },
   tsxPortfolio: {
@@ -107,7 +107,7 @@ const RESUME_PROJECTS: Record<ResumeProjectKey, { name: string; role: string; bu
     role: "Data Lead",
     bullets: [
       "Built an automated financial data pipeline processing 37 months of TSX equity data for portfolio optimization",
-      "Computed log returns and engineered an 11\\texttimes{}11 covariance matrix to model asset risk and interdependencies",
+      "Computed log returns and engineered an 11x11 covariance matrix to model asset risk and interdependencies",
       "Implemented Markowitz portfolio optimization, generating the efficient frontier and risk-return optimal allocations",
       "Led a small team validating all computations for accuracy, scoring among the top 5 in class",
     ],
@@ -126,14 +126,14 @@ const RESUME_PROJECTS: Record<ResumeProjectKey, { name: string; role: string; bu
     name: "VenueWorks",
     role: "Co-Founder, Product Strategy Lead",
     bullets: [
+      "Identified $5M+ in idle annual venue capacity and benchmarked 300+ local properties to support pricing and market-entry strategy",
+      "Built a commission-plus-premium-listing revenue model and investor pitch, placing 2nd and winning $1,500 in funding",
       "Led product strategy for a marketplace connecting event venues with clients, evaluating supply and demand fit",
-      "Benchmarked 300+ local properties against competitors including Peerspace, LiquidSpace, and Giggster",
-      "Identified $\\$$5M+ in idle annual venue capacity, validating market demand at UBC's Odlum Brown Entrepreneur Boot Camp",
-      "Built a commission-plus-premium-listing revenue model and investor pitch, placing 2nd and winning $\\$$1,500 in funding",
+      "Benchmarked competitors including Peerspace, LiquidSpace, and Giggster to validate positioning",
     ],
   },
   socialMedia: {
-    name: "Social Media Growth \\& Brand Strategy",
+    name: "Social Media Growth & Brand Strategy",
     role: "Content Strategy Lead",
     bullets: [
       "Built and grew multiple digital brand accounts to 4M+ combined organic views without paid spend",
@@ -167,10 +167,10 @@ const RESUME_PROJECTS: Record<ResumeProjectKey, { name: string; role: string; bu
 // 4 if it still fits" rule.
 const RESUME_PROJECT_PLAN: Record<ResumeRoleType, { key: ResumeProjectKey; bullets: number }[]> = {
   bi_data_analyst: [{ key: "taAllocation", bullets: 4 }, { key: "eyeTracking", bullets: 3 }, { key: "tsxPortfolio", bullets: 2 }],
-  business_systems_analyst: [{ key: "taAllocation", bullets: 4 }, { key: "eyeTracking", bullets: 2 }, { key: "calmora", bullets: 2 }],
+  business_systems_analyst: [{ key: "taAllocation", bullets: 4 }, { key: "eyeTracking", bullets: 3 }, { key: "calmora", bullets: 2 }],
   product: [{ key: "taAllocation", bullets: 4 }, { key: "eyeTracking", bullets: 3 }, { key: "venueWorks", bullets: 2 }],
   automation_productops: [{ key: "calmora", bullets: 3 }, { key: "taAllocation", bullets: 3 }, { key: "eyeTracking", bullets: 2 }],
-  strategy_ops_consulting: [{ key: "taAllocation", bullets: 4 }, { key: "tsxPortfolio", bullets: 2 }, { key: "venueWorks", bullets: 2 }],
+  strategy_ops_consulting: [{ key: "taAllocation", bullets: 4 }, { key: "tsxPortfolio", bullets: 3 }, { key: "venueWorks", bullets: 2 }],
   finance_ma_equity: [{ key: "tsxPortfolio", bullets: 4 }, { key: "taAllocation", bullets: 2 }, { key: "venueWorks", bullets: 2 }],
   nonprofit_climate_program: [{ key: "venueWorks", bullets: 4 }, { key: "taAllocation", bullets: 2 }, { key: "socialMedia", bullets: 2 }],
   network_it_systems: [{ key: "helpR", bullets: 3 }, { key: "taAllocation", bullets: 3 }, { key: "eyeTracking", bullets: 2 }],
@@ -193,7 +193,7 @@ const RESUME_EXPERIENCE_PLAN: Record<ResumeRoleType, { key: ResumeExperienceKey;
   product: [{ key: "ubcsuo", bulletIndices: [3, 0] }, { key: "ubcIT", bulletIndices: [1] }],
   automation_productops: [{ key: "ubcIT", bulletIndices: [2, 1] }, { key: "ubcsuo", bulletIndices: [0] }],
   strategy_ops_consulting: [{ key: "ubcsuo", bulletIndices: [0, 2] }, { key: "ubcIT", bulletIndices: [2] }],
-  finance_ma_equity: [{ key: "ubcsuo", bulletIndices: [0, 1] }],
+  finance_ma_equity: [{ key: "ubcsuo", bulletIndices: [0, 1] }, { key: "ubcIT", bulletIndices: [3] }],
   nonprofit_climate_program: [{ key: "ubcsuo", bulletIndices: [0, 1, 2] }],
   network_it_systems: [{ key: "ubcIT", bulletIndices: [0, 1, 3] }, { key: "ubcsuo", bulletIndices: [0] }],
   software_developer: [{ key: "ubcIT", bulletIndices: [1, 2] }, { key: "ubcsuo", bulletIndices: [3] }],
@@ -209,63 +209,63 @@ type SkillLine = { label: string; items: string[] };
 const RESUME_SKILLS_PLAN: Record<ResumeRoleType, SkillLine[]> = {
   bi_data_analyst: [
     { label: "Languages/Frameworks", items: ["Python", "SQL", "JavaScript", "TypeScript"] },
-    { label: "Systems \\& Architecture", items: ["ServiceNow", "REST APIs", "Docker"] },
-    { label: "Data \\& Business Analytics", items: ["Tableau", "GA4", "Adobe Experience Platform", "Requirements Gathering"] },
+    { label: "Systems & Architecture", items: ["ServiceNow", "REST APIs", "Docker"] },
+    { label: "Data & Business Analytics", items: ["Tableau", "GA4", "Adobe Experience Platform", "Requirements Gathering"] },
   ],
   business_systems_analyst: [
     { label: "Languages/Frameworks", items: ["Python", "SQL", "JavaScript", "TypeScript"] },
-    { label: "Systems \\& Architecture", items: ["ServiceNow", "REST APIs", "Docker"] },
-    { label: "Data \\& Business Analytics", items: ["Requirements Gathering", "SDLC", "SLA Management", "Tableau"] },
+    { label: "Systems & Architecture", items: ["ServiceNow", "REST APIs", "Docker"] },
+    { label: "Data & Business Analytics", items: ["Requirements Gathering", "SDLC", "SLA Management", "Tableau"] },
   ],
   product: [
     { label: "Languages/Frameworks", items: ["Python", "SQL", "Flask"] },
-    { label: "Systems \\& Architecture", items: ["REST APIs", "Docker", "Git"] },
-    { label: "Data \\& Business Analytics", items: ["Requirements Gathering", "Tableau", "Cost-Benefit Analysis"] },
+    { label: "Systems & Architecture", items: ["REST APIs", "Docker", "Git"] },
+    { label: "Data & Business Analytics", items: ["Requirements Gathering", "Tableau", "Cost-Benefit Analysis"] },
   ],
   automation_productops: [
     { label: "Languages/Frameworks", items: ["Python", "JSON", "SQL"] },
-    { label: "Systems \\& Architecture", items: ["REST APIs", "ServiceNow", "Docker"] },
-    { label: "Data \\& Business Analytics", items: ["SDLC", "Requirements Gathering", "SLA Management"] },
+    { label: "Systems & Architecture", items: ["REST APIs", "ServiceNow", "Docker"] },
+    { label: "Data & Business Analytics", items: ["SDLC", "Requirements Gathering", "SLA Management"] },
   ],
   strategy_ops_consulting: [
     { label: "Languages/Frameworks", items: ["Python", "SQL"] },
-    { label: "Systems \\& Architecture", items: ["ServiceNow", "REST APIs"] },
-    { label: "Data \\& Business Analytics", items: ["Cost-Benefit Analysis", "Requirements Gathering", "Tableau", "SLA Management"] },
+    { label: "Systems & Architecture", items: ["ServiceNow", "REST APIs"] },
+    { label: "Data & Business Analytics", items: ["Cost-Benefit Analysis", "Requirements Gathering", "Tableau", "SLA Management"] },
   ],
   finance_ma_equity: [
-    { label: "Languages/Frameworks", items: ["Python", "SQL", "R"] },
-    { label: "Systems \\& Architecture", items: ["REST APIs", "Git"] },
-    { label: "Data \\& Business Analytics", items: ["Cost-Benefit Analysis", "Tableau", "Requirements Gathering"] },
+    { label: "Finance & Analytics", items: ["Excel", "Financial Analysis", "Portfolio Modeling", "Variance Analysis", "Cost-Benefit Analysis", "Bloomberg Market Concepts"] },
+    { label: "Data & Tools", items: ["Python", "SQL", "Tableau", "Data Validation", "Market Research"] },
+    { label: "Systems & Reporting", items: ["ServiceNow", "Requirements Gathering", "Dashboarding", "Stakeholder Reporting"] },
   ],
   nonprofit_climate_program: [
     { label: "Languages/Frameworks", items: ["Python", "SQL"] },
-    { label: "Systems \\& Architecture", items: ["REST APIs", "ServiceNow"] },
-    { label: "Data \\& Business Analytics", items: ["Cost-Benefit Analysis", "Tableau", "Requirements Gathering"] },
+    { label: "Systems & Architecture", items: ["REST APIs", "ServiceNow"] },
+    { label: "Data & Business Analytics", items: ["Cost-Benefit Analysis", "Tableau", "Requirements Gathering"] },
   ],
   network_it_systems: [
     { label: "Languages/Frameworks", items: ["Python", "SQL", "HTML/CSS"] },
-    { label: "Systems \\& Architecture", items: ["ServiceNow", "Docker", "Git"] },
-    { label: "Data \\& Business Analytics", items: ["SLA Management", "SDLC", "Requirements Gathering"] },
+    { label: "Systems & Architecture", items: ["ServiceNow", "Docker", "Git"] },
+    { label: "Data & Business Analytics", items: ["SLA Management", "SDLC", "Requirements Gathering"] },
   ],
   software_developer: [
     { label: "Languages/Frameworks", items: ["Python", "Flask", "JavaScript", "TypeScript", "SQL"] },
-    { label: "Systems \\& Architecture", items: ["REST APIs", "Docker", "Git", "Firebase"] },
-    { label: "Data \\& Business Analytics", items: ["SDLC", "Requirements Gathering"] },
+    { label: "Systems & Architecture", items: ["REST APIs", "Docker", "Git", "Firebase"] },
+    { label: "Data & Business Analytics", items: ["SDLC", "Requirements Gathering"] },
   ],
   supply_chain_ops: [
     { label: "Languages/Frameworks", items: ["SQL", "Python"] },
-    { label: "Systems \\& Architecture", items: ["ServiceNow", "REST APIs"] },
-    { label: "Data \\& Business Analytics", items: ["Cost-Benefit Analysis", "SLA Management", "Requirements Gathering"] },
+    { label: "Systems & Architecture", items: ["ServiceNow", "REST APIs"] },
+    { label: "Data & Business Analytics", items: ["Cost-Benefit Analysis", "SLA Management", "Requirements Gathering"] },
   ],
   marketing_growth: [
     { label: "Languages/Frameworks", items: ["Python", "SQL"] },
-    { label: "Data \\& Business Analytics", items: ["GA4", "Adobe Experience Platform", "Tableau"] },
-    { label: "Systems \\& Architecture", items: ["REST APIs", "Firebase"] },
+    { label: "Data & Business Analytics", items: ["GA4", "Adobe Experience Platform", "Tableau"] },
+    { label: "Systems & Architecture", items: ["REST APIs", "Firebase"] },
   ],
   ui_ux_frontend: [
     { label: "Languages/Frameworks", items: ["JavaScript", "TypeScript", "HTML/CSS", "Python"] },
-    { label: "Systems \\& Architecture", items: ["Android Studio", "Firebase", "Git"] },
-    { label: "Data \\& Business Analytics", items: ["Requirements Gathering", "Tableau"] },
+    { label: "Systems & Architecture", items: ["Android Studio", "Firebase", "Git"] },
+    { label: "Data & Business Analytics", items: ["Requirements Gathering", "Tableau"] },
   ],
 };
 
@@ -297,7 +297,7 @@ function selectResumeExperience(roleType: ResumeRoleType): ResumeContentPlan["ex
       title: source.title,
       org: source.org,
       location: source.location,
-      dates: source.dates,
+      dates: source.dates.replace(/\s*[–—]\s*/g, " -- "),
       bullets: bulletIndices.map((i) => source.bullets[i]).filter(Boolean),
     };
   });
@@ -400,7 +400,7 @@ function renderResumeLatex(plan: ResumeContentPlan): string {
   const projectBlocks = plan.projects
     .map((p) => {
       const bullets = p.bullets.map((b) => `  \\resumeItem{${e(b)}}`).join("\n");
-      return `\\textbf{${p.name}} $|$ \\textit{${e(p.role)}}
+      return `\\textbf{${e(p.name)}} $|$ \\textit{${e(p.role)}}
 \\begin{itemize}
 ${bullets}
 \\end{itemize}`;
@@ -423,6 +423,10 @@ ${projectBlocks}`;
 ${experienceBlocks}`;
 
   const linkedinHandle = profile.linkedin.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+  const showGithub = ["software_developer", "network_it_systems", "ui_ux_frontend"].includes(plan.roleType);
+  const contactLine = [plan.location, profile.phone, profile.email, linkedinHandle, ...(showGithub ? [profile.github] : [])]
+    .map(e)
+    .join(" $|$ ");
 
   return `\\documentclass[10pt,letterpaper]{article}
 \\usepackage[margin=0.42in]{geometry}
@@ -431,21 +435,25 @@ ${experienceBlocks}`;
 \\usepackage[hidelinks]{hyperref}
 \\usepackage[T1]{fontenc}
 \\usepackage[english]{babel}
+\\usepackage{sourcesanspro}
+\\usepackage[usenames,dvipsnames]{color}
 
+\\renewcommand{\\familydefault}{\\sfdefault}
 \\pagestyle{empty}
+\\color{black}
 \\raggedright
 \\raggedbottom
 \\setlength{\\parindent}{0pt}
 \\setlength{\\tabcolsep}{0in}
-\\setlist[itemize]{leftmargin=*, itemsep=0pt, topsep=1pt, parsep=0pt, partopsep=0pt}
+\\setlist[itemize]{leftmargin=0.15in, itemsep=0pt, topsep=1pt, parsep=0pt, partopsep=0pt}
 
-\\titleformat{\\section}{\\vspace{-7pt}\\bfseries\\raggedright\\large}{}{0em}{}[\\titlerule \\vspace{-4pt}]
+\\titleformat{\\section}{\\vspace{-8pt}\\scshape\\raggedright\\large}{}{0em}{}[\\color{black}\\titlerule \\vspace{-5pt}]
 
 \\newcommand{\\resumeItem}[1]{\\item\\small{#1}}
 \\newcommand{\\resumeSubheading}[4]{
   \\vspace{1pt}
   \\textbf{#1} \\hfill #2\\\\
-  \\textit{#3} \\hfill #4
+  \\textit{#3} \\hfill #4\\\\
   \\vspace{-4pt}
 }
 
@@ -453,7 +461,7 @@ ${experienceBlocks}`;
 
 \\begin{center}
   {\\huge \\textbf{${e(profile.name)}}}\\\\[2pt]
-  \\small ${e(plan.location)} $|$ ${e(profile.phone)} $|$ ${e(profile.email)} $|$ ${e(linkedinHandle)} $|$ ${e(profile.github)}
+  \\small ${contactLine}
 \\end{center}
 
 ${resumeSection("EDUCATION", e)}
@@ -464,7 +472,7 @@ ${resumeSection("EDUCATION", e)}
   \\resumeItem{\\textbf{Professional Development:} ${e(profile.education.professionalDevelopment)}}
 \\end{itemize}
 
-${resumeSection("TECHNICAL SKILLS \\& CORE COMPETENCIES", e)}
+${resumeSection("TECHNICAL SKILLS & CORE COMPETENCIES", e)}
 ${skillLines}
 
 ${plan.experienceFirst ? `${experienceSection}\n\n${projectsSection}` : `${projectsSection}\n\n${experienceSection}`}
@@ -506,6 +514,7 @@ export function auditResumeLatex(latex: string, plan: ResumeContentPlan): Resume
 
   const itemCount = (latex.match(/\\resumeItem\{/g) ?? []).length;
   if (itemCount > 18) violations.push(`${itemCount} bullets exceeds the 18-bullet hard cap`);
+  if (itemCount < 12) violations.push(`${itemCount} bullets is below the 12-bullet minimum`);
 
   if (plan.projects.length > 3) violations.push(`${plan.projects.length} selected projects exceeds the 3-project cap`);
   for (const p of plan.projects) {
@@ -516,6 +525,8 @@ export function auditResumeLatex(latex: string, plan: ResumeContentPlan): Resume
   if (/\|\s*-\s*\$?\|/.test(latex) || / - \$\|/.test(latex)) violations.push("Malformed project title (trailing ' - |')");
   if (!latex.includes("margin=0.42in")) violations.push("Missing the compact 0.42in margin");
   if (latex.includes("https://")) violations.push("Header contains a full https:// URL instead of a bare handle");
+  if (!latex.includes("\\usepackage{sourcesanspro}")) violations.push("Missing sourcesanspro");
+  if (/May 2025\s+Apr 2026/.test(latex)) violations.push("Date range is missing a visible separator");
 
   return { ok: violations.length === 0, violations };
 }
@@ -553,7 +564,7 @@ export function generateResumeLatex(input: GenInput): { latex: string; projectsU
 //
 // Cover letters do NOT depend on generate_resume or selectProjects -- they
 // have their own evidence bank below, richer than the resume's fixed
-// 3-5-project pool, because a cover letter only ever needs one or two
+// 1-3-project resume pool, because a cover letter only ever needs one or two
 // pieces of proof, not a full page of them.
 // ============================================================================
 
@@ -676,18 +687,18 @@ type EvidenceBlock = {
 
 const PROFESSIONAL_EVIDENCE = {
   ubcIT: {
-    text: "At the University of British Columbia's IT department, I kept enterprise systems running for 12,000+ students and staff, resolving 110+ daily ServiceNow incidents against strict SLA requirements while running incident trend analysis that identified the top recurring failure types across campus systems. I partnered with UBC Vancouver engineering to redesign the workflows behind those failures, then rebuilt knowledge base KB0019190 in plain, student-facing language instead of IT jargon, work that cut recurring related incidents by 70\\% and is now the reference version support teams use campus-wide. I also contributed to a Microsoft 365 migration and an AI chatbot rollout, drafting the end-user documentation both initiatives needed to land with real users instead of just clearing a technical review.",
+    text: "At the University of British Columbia's IT department, I supported enterprise systems serving 12,000+ students and staff and resolved 110+ daily ServiceNow incidents against strict SLA requirements. Trend analysis exposed the most common failures, and I partnered with UBC Vancouver engineering to redesign the workflows behind them. I then rebuilt knowledge base KB0019190 in clear, student-facing language, cutting related incidents by 70\\%. I also supported a Microsoft 365 migration and AI chatbot rollout, including the end-user documentation needed for adoption.",
     metrics: ["110+ daily ServiceNow incidents", "12,000+ students and staff", "70\\%"],
   },
   ubcsuo: {
-    text: "As Director at the UBC Students' Union, I own analytics reporting and digital strategy for a \\$1.9M operating budget that funds 150+ student organizations, and I represent 70,000+ students across both UBC campuses through policy committee work, including updates to the SC14 Information Systems and SC11 Wireless Network policies. I built the board-level dashboards leadership now uses to track technology and operations outcomes directly, and across five standing committees, Policy, Campus Life, Campaigns, Strategic, and Funding, I coordinate finance, procurement, and technology workflows behind \\$370,000+ in annual club and association funding, alongside large-scale events and community engagement.",
+    text: "As Director at the UBC Students' Union, I own analytics reporting and digital strategy for a \\$1.9M operating budget funding 150+ student organizations. I built board-level dashboards that give leadership direct visibility into technology and operations outcomes. Through policy committee work, I also helped update the SC14 Information Systems and SC11 Wireless Network policies, while coordinating finance, procurement, and technology workflows across five standing committees and \\$370,000+ in annual club and association funding.",
     metrics: ["\\$1.9M operating budget", "150+ student organizations", "70,000+ students", "\\$370,000+ in annual club and association funding"],
   },
 } satisfies Record<string, EvidenceBlock>;
 
 const PROJECT_EVIDENCE = {
   taAllocation: {
-    text: "I led backend delivery of a full-stack TA allocation platform that UBC's Computer Science department now runs to process 250+ applications per term, replacing a manual spreadsheet process that used to take coordinators multiple days. Working with a 6-member Agile team, I built automated scheduling, conflict detection, and role-based access across 36+ features, backed by 100\\% test coverage and a 95\\% pass rate across 50 unit and integration tests, and shipped it through a Docker-based CI/CD pipeline. The result cut allocation processing time by 70\\%, turning a multi-day manual task into a few hours of coordinator work each term.",
+    text: "I led backend delivery of a full-stack TA allocation platform that processes 250+ applications per term, replacing a manual spreadsheet workflow. With a 6-member Agile team, I translated coordinator needs into 36+ features covering scheduling, conflict detection, and role-based access. The platform shipped through a Docker-based CI/CD pipeline with 100\\% test coverage and a 95\\% pass rate across 50 tests. It cut allocation processing time by 70\\%, reducing a multi-day task to a few hours each term.",
     metrics: ["250+ applications per term", "36+ features", "100\\% test coverage", "95\\% pass rate across 50 unit and integration tests", "70\\%"],
   },
   tsxPortfolio: {
@@ -951,6 +962,10 @@ export function auditCoverLetter(text: string, companyName?: string): CoverLette
 
   const wordCount = text.split(/\s+/).filter(Boolean).length;
   if (wordCount > 480) violations.push(`Body is ${wordCount} words -- likely exceeds one page`);
+  for (const paragraph of text.split(/\n\s*\n/)) {
+    const paragraphWords = paragraph.split(/\s+/).filter(Boolean).length;
+    if (paragraphWords > 115) violations.push(`Paragraph is ${paragraphWords} words -- split or tighten it`);
+  }
 
   return { ok: violations.length === 0, violations };
 }
@@ -991,23 +1006,26 @@ export function generateCoverLetterLatex(
   if (!audit.ok) {
     throw new Error(`Cover letter failed quality audit: ${audit.violations.join("; ")}`);
   }
+  const linkedinHandle = profile.linkedin.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
 
   const latex = `\\documentclass[10.5pt,letterpaper]{article}
 \\usepackage[margin=0.68in]{geometry}
 \\usepackage[hidelinks]{hyperref}
-\\usepackage{sourcesanspro}
 \\usepackage[T1]{fontenc}
 \\usepackage[english]{babel}
+\\usepackage{sourcesanspro}
+\\usepackage[usenames,dvipsnames]{color}
 \\renewcommand{\\familydefault}{\\sfdefault}
 \\pagestyle{empty}
 \\setlength{\\parindent}{0pt}
-\\setlength{\\parskip}{0.72em}
+\\setlength{\\parskip}{0.65em}
+\\color{black}
 
 \\begin{document}
 
 \\begin{flushleft}
 {\\Large \\textbf{${e(profile.name)}}}\\\\
-${e(profile.location)} \\quad $\\vert$ \\quad ${e(profile.phone)} \\quad $\\vert$ \\quad ${e(profile.email)} \\quad $\\vert$ \\quad ${e(profile.linkedin)}
+British Columbia \\quad $\\vert$ \\quad ${e(profile.phone)} \\quad $\\vert$ \\quad ${e(profile.email)} \\quad $\\vert$ \\quad ${e(linkedinHandle)}
 \\end{flushleft}
 
 \\vspace{8pt}

@@ -6,9 +6,9 @@ MCP server exposing 6 tools for the job search pipeline: `generate_resume`,
 
 ## Tools exposed
 
-- `generate_resume` — one page LaTeX resume tailored to a job description,
-  drawing on 3-5 of the strongest matching projects from the fixed project
-  pool.
+- `generate_resume` — one-page LaTeX resume tailored to a job description,
+  drawing on 1-3 of the strongest matching projects (default 3). The
+  one-page policy always takes priority.
 - `generate_cover_letter` — one page LaTeX cover letter tailored to a job
   description, matched to Aaditya's real format.
 - `save_application` — logs a job to the tracked application shortlist. Does
@@ -31,6 +31,11 @@ MCP server exposing 6 tools for the job search pipeline: `generate_resume`,
 npm install
 npm run dev
 ```
+
+Set `MCP_API_KEY` for every deployed environment. Clients must send it as
+`Authorization: Bearer <key>` or `x-mcp-api-key: <key>`. A missing key is
+allowed only during local development (with a warning); production fails
+closed. See [`MCP_SETUP.md`](MCP_SETUP.md) for local and Vercel examples.
 
 `save_application` / `list_applications` need a Vercel Blob store connected
 to persist data — see `.env.example`. In the Vercel dashboard: Storage tab to
@@ -67,7 +72,7 @@ npm run check:connectors   # live check of the public Greenhouse/Lever ATS
                             # APIs documented in plugin/shared/references/job-portals.md
 npm run dev                 # in one terminal
 npm run smoke                # in another -- connects a real MCP client to the
-                              # running server and calls all 5 tools end-to-end.
+                              # running server and calls all 6 tools end-to-end.
                               # save_application/list_applications degrade to
                               # verifying the clear BLOB_READ_WRITE_TOKEN error
                               # if no Blob store is configured locally.

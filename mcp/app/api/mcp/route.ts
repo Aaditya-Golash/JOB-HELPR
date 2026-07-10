@@ -4,6 +4,7 @@ import { generateResumeLatex, generateCoverLetterLatex } from "../../../lib/temp
 import { saveApplication, listApplications } from "../../../lib/store";
 import { profile } from "../../../lib/profile";
 import { selectAddress } from "../../../lib/address";
+import { authorizeMcpRequest } from "../../../lib/auth";
 
 const handler = createMcpHandler(
   (server) => {
@@ -130,4 +131,10 @@ const handler = createMcpHandler(
   { basePath: "/api" },
 );
 
-export { handler as GET, handler as POST, handler as DELETE };
+type RouteHandler = (request: Request) => Response | Promise<Response>;
+
+function protectedHandler(request: Request): Response | Promise<Response> {
+  return authorizeMcpRequest(request) ?? (handler as RouteHandler)(request);
+}
+
+export { protectedHandler as GET, protectedHandler as POST, protectedHandler as DELETE };

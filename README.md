@@ -50,4 +50,5 @@ npx vercel --prod
 
 Needs a Vercel Blob store connected for `save_application` / `list_applications`
 to persist data — see `mcp/README.md` and `mcp/.env.example`. The generate
-tools work with no setup.
+tools work with no storage setup. Deployed MCP servers require `MCP_API_KEY`;
+see [`mcp/MCP_SETUP.md`](mcp/MCP_SETUP.md) for local and Vercel connection steps.

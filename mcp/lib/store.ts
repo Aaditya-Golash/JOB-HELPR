@@ -27,6 +27,19 @@ export type ApplicationRecord = {
 
 const STORE_KEY = "job-pipeline/applications.json";
 
+// Serializes the full read-merge-write transaction inside one Node process.
+// This prevents lost updates from concurrent requests handled by the same
+// local/serverless instance. Vercel Blob is not transactional, so separate
+// instances can still race; migrate this tracker to Postgres for high-write
+// concurrency or multi-user production use.
+let writeQueue: Promise<void> = Promise.resolve();
+
+function withWriteLock<T>(operation: () => Promise<T>): Promise<T> {
+  const result = writeQueue.then(operation, operation);
+  writeQueue = result.then(() => undefined, () => undefined);
+  return result;
+}
+
 async function streamToString(stream: ReadableStream): Promise<string> {
   const reader = stream.getReader();
   const decoder = new TextDecoder();
@@ -64,16 +77,18 @@ async function writeAll(records: ApplicationRecord[]): Promise<void> {
 }
 
 export async function saveApplication(record: Omit<ApplicationRecord, "id" | "createdAt">) {
-  const all = await readAll();
-  const likelyDuplicateOf = findLikelyDuplicate(all, record);
-  const entry: ApplicationRecord = {
-    ...record,
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    createdAt: new Date().toISOString(),
-  };
-  all.push(entry);
-  await writeAll(all);
-  return { ...entry, likelyDuplicateOf };
+  return withWriteLock(async () => {
+    const all = await readAll();
+    const likelyDuplicateOf = findLikelyDuplicate(all, record);
+    const entry: ApplicationRecord = {
+      ...record,
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      createdAt: new Date().toISOString(),
+    };
+    const merged = [...all.filter((existing) => existing.id !== entry.id), entry];
+    await writeAll(merged);
+    return { ...entry, likelyDuplicateOf };
+  });
 }
 
 export async function listApplications(filter?: Partial<Pick<ApplicationRecord, "status">>) {

@@ -33,14 +33,14 @@ describe("escapeLatex", () => {
 });
 
 describe("selectProjects", () => {
-  it("clamps the requested count into the 3-5 range", () => {
-    expect(selectProjects("business analyst product data", 1)).toHaveLength(3);
-    expect(selectProjects("business analyst product data", 10)).toHaveLength(5);
-    expect(selectProjects("business analyst product data", 4)).toHaveLength(4);
+  it("clamps the requested count into the 1-3 range", () => {
+    expect(selectProjects("business analyst product data", 0)).toHaveLength(1);
+    expect(selectProjects("business analyst product data", 10)).toHaveLength(3);
+    expect(selectProjects("business analyst product data", 2)).toHaveLength(2);
   });
 
-  it("defaults to 4 when no count is given", () => {
-    expect(selectProjects("business analyst product data")).toHaveLength(4);
+  it("defaults to 3 when no count is given", () => {
+    expect(selectProjects("business analyst product data")).toHaveLength(3);
   });
 
   it("ranks projects whose tags match the job description above unrelated ones", () => {

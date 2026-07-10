@@ -40,5 +40,6 @@ specific instead of generic. Save the result using
 This plugin does not keep its own local tracker file (see
 `shared/references/tracker-schema.md` for why). Confirm the `job-pipeline-mcp`
 MCP server is connected and its `get_profile` tool responds. If it isn't
-connected, tell the user before continuing — every later skill in this plugin
-assumes it's there.
+connected, direct the user to `mcp/MCP_SETUP.md` before continuing. The plugin
+manifest cannot provision a user-specific local/deployed URL or its
+`MCP_API_KEY` header, so this MCP connection must be configured separately.

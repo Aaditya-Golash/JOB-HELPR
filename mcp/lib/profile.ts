@@ -80,7 +80,7 @@ export const profile = {
   ],
 
   // Core rotating project pool. Per Aaditya's instruction, every resume and
-  // cover letter draws 3-5 from this fixed set, picked for relevance to the
+  // resume draws 1-3 from this fixed set, picked for relevance to the
   // job description. Do not invent new projects, only rotate these.
   projects: [
     {
@@ -141,7 +141,7 @@ export const profile = {
       task: "Explored whether a marketplace connecting event venues with clients was viable as a self directed project",
       approach: "Led product strategy and positioning, evaluating supply and demand fit",
       features: "Mapped supply across 300 plus candidate properties as part of market validation",
-      impact: "Validated market interest and demand assumptions before deciding not to pursue it as a company",
+      impact: "Identified $5M+ in idle annual capacity across 300+ properties; placed 2nd and won $1,500 at UBC's Odlum Brown Entrepreneur Boot Camp",
     },
   ],
 
@@ -154,7 +154,7 @@ export const profile = {
   skillCategories: [
     { label: "Languages/Frameworks", items: ["Python", "SQL", "C/C++", "R", "JavaScript", "TypeScript", "HTML/CSS", "SQLAlchemy", "Flask", "JSON"] },
     { label: "Systems & Architecture", items: ["REST APIs", "ServiceNow", "Docker", "Firebase", "Vercel", "Android Studio", "Stripe CLI", "Git"] },
-    { label: "Data & Business Analytics", items: ["Tableau", "Requirements Gathering", "SDLC", "SLA Management", "Cost-Benefit Analysis", "GA4", "Adobe Experience Platform"] },
+    { label: "Data & Business Analytics", items: ["Excel", "Financial Analysis", "Portfolio Modeling", "Variance Analysis", "Market Research", "Data Validation", "Dashboarding", "Stakeholder Reporting", "Tableau", "Requirements Gathering", "SDLC", "SLA Management", "Cost-Benefit Analysis", "GA4", "Adobe Experience Platform"] },
     { label: "Machine Learning", items: ["PyTorch", "Computer Vision"] },
   ],
 
